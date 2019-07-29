@@ -7,10 +7,10 @@ import { GridLayer, withLeaflet } from 'react-leaflet';
 const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
     initialize: function (url, options) {
         const init = LeafletTileLayer.prototype.initialize.call(this, url, options);
-        if (!this.options.useCache) {
-            this._db = null;
-        } else {
+        if (this.options.useCache) {
             this._db = new PouchDB("offline-tiles");
+        } else {
+            this._db = null;
         }
         return init;
     },
@@ -347,7 +347,7 @@ PouchDBTileLayer.propTypes = {
 }
 
 PouchDBTileLayer.defaultProps = {
-    useCache: false,
+    useCache: true,
     saveToCache: true,
     useOnlyCache: false,
     cacheFormat: 'image/png',
