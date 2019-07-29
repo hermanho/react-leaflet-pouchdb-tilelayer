@@ -2,3 +2,4 @@ src
 examples
 .babelrc
 .gitignore
+.travis.yml
