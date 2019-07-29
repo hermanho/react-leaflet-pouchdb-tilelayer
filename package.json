@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/pouchdb-tilelayer.js",
   "scripts": {
@@ -28,7 +28,8 @@
     "leaflet": "^1.5.1",
     "react": "^16.8.0",
     "react-dom": "^16.8.0",
-    "react-leaflet": "^2.4.0"
+    "react-leaflet": "^2.4.0",
+    "pouchdb": "^7.1.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
