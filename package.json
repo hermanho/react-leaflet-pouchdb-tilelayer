@@ -1,0 +1,46 @@
+{
+  "name": "react-leaflet-pouchdb-tilelayer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/pouchdb-tilelayer.js",
+  "scripts": {
+    "transpile": "babel src -d dist",
+    "prepublishOnly": "npm run transpile"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hermanho/react-leaflet-pouchdb-tilelayer.git"
+  },
+  "keywords": [
+    "leaflet",
+    "react",
+    "react-leaflet",
+    "pouchdb",
+    "tilelayer"
+  ],
+  "author": "hermanho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues"
+  },
+  "homepage": "https://github.com/hermanho/react-leaflet-pouchdb-tilelayer#readme",
+  "peerDependencies": {
+    "leaflet": "^1.5.1",
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0",
+    "react-leaflet": "^2.4.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
+    "leaflet": "^1.5.1",
+    "react": "^16.8.0",
+    "react-dom": "^16.8.0",
+    "react-leaflet": "^2.4.0"
+  },
+  "dependencies": {
+    "prop-types": "^15.7.0"
+  }
+}
