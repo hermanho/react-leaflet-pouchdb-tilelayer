@@ -45,12 +45,15 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
         }
 
         if (this.options.cacheNextZoomLevel) {
+            const _this = this;
             setTimeout(() => {
-                const zoom = this._clampZoom(this._map.getZoom() + 1);
-                if (!((this.options.maxZoom !== undefined && zoom > this.options.maxZoom) ||
-                    (this.options.minZoom !== undefined && zoom < this.options.minZoom))) {
-                    const tileBounds = this._tileCoordsToBounds(coords);
-                    this.seed(tileBounds, zoom, zoom);
+                if (_this._map) {
+                    const zoom = _this._clampZoom(_this._map.getZoom() + 1);
+                    if (!((_this.options.maxZoom !== undefined && zoom > _this.options.maxZoom) ||
+                        (_this.options.minZoom !== undefined && zoom < _this.options.minZoom))) {
+                        const tileBounds = _this._tileCoordsToBounds(coords);
+                        _this.seed(tileBounds, zoom, zoom);
+                    }
                 }
             }, 1000);
         }
