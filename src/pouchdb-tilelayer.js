@@ -64,13 +64,14 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
     // Returns a callback (closure over tile/key/originalSrc) to be run when the DB
     //   backend is finished with a fetch operation.
     _onCacheLookup: function (tile, tileUrl, done) {
+        const _self = this;
         return function (err, data) {
             if (data) {
-                return this._onCacheHit(tile, tileUrl, data, done);
+                return _self._onCacheHit(tile, tileUrl, data, done);
             } else {
-                return this._onCacheMiss(tile, tileUrl, done);
+                return _self._onCacheMiss(tile, tileUrl, done);
             }
-        }.bind(this);
+        };
     },
 
     _onCacheHit: function (tile, tileUrl, data, done) {
@@ -79,22 +80,23 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
             url: tileUrl,
         });
 
+        const _self = this;
         // Read the attachment as blob
         this._db.getAttachment(tileUrl, "tile").then(
             function (blob) {
                 var url = URL.createObjectURL(blob);
 
                 if (
-                    Date.now() > data.timestamp + this.options.cacheMaxAge &&
-                    !this.options.useOnlyCache
+                    Date.now() > data.timestamp + _self.options.cacheMaxAge &&
+                    !_self.options.useOnlyCache
                 ) {
                     // Tile is too old, try to refresh it
                     console.log("Tile is too old: ", tileUrl);
 
-                    if (this.options.saveToCache) {
+                    if (_self.options.saveToCache) {
                         tile.onload = Util.bind(
-                            this._saveTile,
-                            this,
+                            _self._saveTile,
+                            _self,
                             tile,
                             tileUrl,
                             data._revs_info[0].rev,
@@ -106,16 +108,22 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
                     tile.onerror = function (ev) {
                         // If the tile is too old but couldn't be fetched from the network,
                         //   serve the one still in cache.
-                        this.src = url;
+                        _self.src = url;
                     };
                 } else {
                     // Serve tile from cached data
                     //console.log('Tile is cached: ', tileUrl);
-                    tile.onload = Util.bind(this._tileOnLoad, this, done, tile);
+                    tile.onload = Util.bind(_self._tileOnLoad, _self, done, tile);
                     tile.src = url;
                 }
-            }.bind(this)
-        );
+            }
+        ).catch(reason => {
+            if (reason && reason.status === 404) {
+                return _self._onCacheMiss(tile, tileUrl, done);
+            } else {
+                return reason;
+            }
+        });
     },
 
     _onCacheMiss: function (tile, tileUrl, done) {
@@ -164,9 +172,10 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
 
         const format = this.options.cacheFormat;
 
+        const _self = this;
         canvas.toBlob(
             function (blob) {
-                this._db
+                _self._db
                     .put({
                         _id: tileUrl,
                         _rev: existingRevision,
@@ -174,14 +183,14 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
                     })
                     .then(
                         function (status) {
-                            return this._db.putAttachment(
+                            return _self._db.putAttachment(
                                 tileUrl,
                                 "tile",
                                 status.rev,
                                 blob,
                                 format
                             );
-                        }.bind(this)
+                        }
                     )
                     .then(function (resp) {
                         if (done) {
@@ -195,7 +204,7 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
                             done();
                         }
                     });
-            }.bind(this),
+            },
             format
         );
     },
@@ -307,21 +316,22 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
 
         const url = remaining.shift();
 
+        const _self = this;
         this._db.get(
             url,
             function (err, data) {
                 if (!data) {
                     /// FIXME: Do something on tile error!!
                     tile.onload = function (ev) {
-                        this._saveTile(tile, url, null); //(ev)
-                        this._seedOneTile(tile, remaining, seedData);
-                    }.bind(this);
+                        _self._saveTile(tile, url, null); //(ev)
+                        _self._seedOneTile(tile, remaining, seedData);
+                    };
                     tile.crossOrigin = "Anonymous";
                     tile.src = url;
                 } else {
-                    this._seedOneTile(tile, remaining, seedData);
+                    _self._seedOneTile(tile, remaining, seedData);
                 }
-            }.bind(this)
+            }
         );
     }
 });
