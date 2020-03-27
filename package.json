@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "",
   "main": "dist/pouchdb-tilelayer.js",
   "scripts": {
@@ -25,11 +25,11 @@
   },
   "homepage": "https://github.com/hermanho/react-leaflet-pouchdb-tilelayer#readme",
   "peerDependencies": {
-    "leaflet": "^1.5.1",
-    "react": "^16.8.0",
-    "react-dom": "^16.8.0",
-    "react-leaflet": "^2.4.0",
-    "pouchdb": "^7.1.1"
+    "leaflet": "^1.6.0",
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0",
+    "react-leaflet": "^2.6.3",
+    "pouchdb": "^7.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
@@ -39,7 +39,7 @@
     "leaflet": "^1.6.0",
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
-    "react-leaflet": "^2.6.0"
+    "react-leaflet": "^2.6.3"
   },
   "dependencies": {
     "prop-types": "^15.7.0"
