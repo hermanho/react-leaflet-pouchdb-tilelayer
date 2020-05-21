@@ -4,6 +4,9 @@
   "description": "",
   "main": "dist/pouchdb-tilelayer.js",
   "scripts": {
+    "lint": "eslint src/**/*.ts",
+    "build:types": "tsc --declaration --emitDeclarationOnly --declarationDir types",
+    "build:babel": "babel --delete-dir-on-start src --out-dir dist --extensions .ts,.js",
     "transpile": "babel src -d dist",
     "prepublishOnly": "npm run transpile"
   },
@@ -17,6 +20,10 @@
     "react-leaflet",
     "pouchdb",
     "tilelayer"
+  ],
+  "files": [
+    "types",
+    "dist"
   ],
   "author": "hermanho",
   "license": "MIT",
@@ -34,14 +41,26 @@
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/preset-env": "^7.9.6",
     "@babel/preset-react": "^7.9.4",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/leaflet": "^1.5.12",
+    "@types/pouchdb": "^6.4.0",
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
+    "@types/react-leaflet": "^2.5.1",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.34.0",
+    "eslint": "^7.0.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-react": "^7.20.0",
     "leaflet": "^1.6.0",
+    "prettier": "^2.0.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-leaflet": "^2.7.0"
-  },
-  "dependencies": {
-    "prop-types": "^15.7.2"
+    "react-leaflet": "^2.7.0",
+    "typescript": "^3.9.3"
   }
 }
