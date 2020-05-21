@@ -26,22 +26,22 @@
   "homepage": "https://github.com/hermanho/react-leaflet-pouchdb-tilelayer#readme",
   "peerDependencies": {
     "leaflet": "^1.6.0",
-    "react": "^16.13.0",
-    "react-dom": "^16.13.0",
-    "react-leaflet": "^2.6.3",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-leaflet": "^2.7.0",
     "pouchdb": "^7.2.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
-    "@babel/core": "^7.9.0",
-    "@babel/preset-env": "^7.9.0",
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
     "@babel/preset-react": "^7.9.4",
     "leaflet": "^1.6.0",
-    "react": "^16.13.0",
-    "react-dom": "^16.13.0",
-    "react-leaflet": "^2.6.3"
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-leaflet": "^2.7.0"
   },
   "dependencies": {
-    "prop-types": "^15.7.0"
+    "prop-types": "^15.7.2"
   }
 }
