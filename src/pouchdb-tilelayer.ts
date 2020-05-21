@@ -1,28 +1,45 @@
-import React, { useEffect, useState, useReducer } from "react";
-import PropTypes from "prop-types";
 import PouchDB from "pouchdb";
 import {
   TileLayer as LeafletTileLayer,
   Util,
   Bounds,
   Point,
-  Browser
+  Browser,
+  TileLayerOptions,
 } from "leaflet";
-import { GridLayer, withLeaflet } from "react-leaflet";
+import { TileLayer, withLeaflet, TileLayerProps } from "react-leaflet";
 
-const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
-  initialize: function(url, options) {
-    const init = LeafletTileLayer.prototype.initialize.call(this, url, options);
-    if (this.options.useCache) {
+export class PouchDBTileLayerOptions {
+  useCache = true;
+  saveToCache = true;
+  useOnlyCache = false;
+  cacheFormat = "image/png";
+  cacheMaxAge = 1 * 3600 * 1000;
+  cacheNextZoomLevel = true;
+}
+
+type MergedPouchDBTileLayerOptions = PouchDBTileLayerOptions & TileLayerOptions;
+
+interface PointZ extends Point {
+  z: number;
+}
+
+class LeafletPouchDBTileLayer extends LeafletTileLayer {
+  _db: PouchDB.Database;
+  options: MergedPouchDBTileLayerOptions;
+
+  constructor(urlTemplate: string, options?: MergedPouchDBTileLayerOptions) {
+    super(urlTemplate, options);
+    if (options.useCache) {
       this._db = new PouchDB("offline-tiles");
     } else {
       this._db = null;
     }
-    return init;
-  },
+  }
+
   // Overwrites L.TileLayer.prototype.createTile
-  createTile: function(coords, done) {
-    var tile = document.createElement("img");
+  createTile(coords, done) {
+    const tile = document.createElement("img");
 
     tile.onerror = Util.bind(this._tileOnError, this, done, tile);
 
@@ -36,11 +53,12 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
          */
     tile.alt = "";
 
-    var tileUrl = this.getTileUrl(coords);
+    const tileUrl = this.getTileUrl(coords);
 
     if (this.options.useCache) {
       this._db.get(
         tileUrl,
+        // eslint-disable-next-line @typescript-eslint/camelcase
         { revs_info: true },
         this._onCacheLookup(tile, tileUrl, done)
       );
@@ -51,53 +69,54 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
     }
 
     if (this.options.cacheNextZoomLevel) {
-      const _this = this;
+      const _self = this;
       setTimeout(() => {
-        if (_this._map) {
-          const zoom = _this._clampZoom(_this._map.getZoom() + 1);
+        if (_self._map) {
+          super._tileCoordsToKey;
+          const zoom = _self._clampZoom(_self._map.getZoom() + 1);
           if (
             !(
-              (_this.options.maxZoom !== undefined &&
-                zoom > _this.options.maxZoom) ||
-              (_this.options.minZoom !== undefined &&
-                zoom < _this.options.minZoom)
+              (_self.options.maxZoom !== undefined &&
+                zoom > _self.options.maxZoom) ||
+              (_self.options.minZoom !== undefined &&
+                zoom < _self.options.minZoom)
             )
           ) {
-            const tileBounds = _this._tileCoordsToBounds(coords);
-            _this.seed(tileBounds, zoom, zoom);
+            const tileBounds = _self._tileCoordsToBounds(coords);
+            _self.seed(tileBounds, zoom, zoom);
           }
         }
       }, 1000);
     }
 
     return tile;
-  },
+  }
 
   // Returns a callback (closure over tile/key/originalSrc) to be run when the DB
   //   backend is finished with a fetch operation.
-  _onCacheLookup: function(tile, tileUrl, done) {
+  _onCacheLookup(tile, tileUrl, done) {
     const _self = this;
-    return function(err, data) {
+    return function (err, data) {
       if (data) {
         return _self._onCacheHit(tile, tileUrl, data, done);
       } else {
         return _self._onCacheMiss(tile, tileUrl, done);
       }
     };
-  },
+  }
 
-  _onCacheHit: function(tile, tileUrl, data, done) {
+  _onCacheHit(tile, tileUrl, data, done) {
     this.fire("tilecachehit", {
       tile: tile,
-      url: tileUrl
+      url: tileUrl,
     });
 
     const _self = this;
     // Read the attachment as blob
     this._db
       .getAttachment(tileUrl, "tile")
-      .then(function(blob) {
-        var url = URL.createObjectURL(blob);
+      .then(function (blob) {
+        const url = URL.createObjectURL(blob);
 
         if (
           Date.now() > data.timestamp + _self.options.cacheMaxAge &&
@@ -118,7 +137,7 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
           }
           tile.crossOrigin = "Anonymous";
           tile.src = tileUrl;
-          tile.onerror = function(ev) {
+          tile.onerror = function (ev) {
             // If the tile is too old but couldn't be fetched from the network,
             //   serve the one still in cache.
             _self.src = url;
@@ -130,19 +149,19 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
           tile.src = url;
         }
       })
-      .catch(reason => {
+      .catch((reason) => {
         if (reason && reason.status === 404) {
           return _self._onCacheMiss(tile, tileUrl, done);
         } else {
           return reason;
         }
       });
-  },
+  }
 
-  _onCacheMiss: function(tile, tileUrl, done) {
+  _onCacheMiss(tile, tileUrl, done) {
     this.fire("tilecachemiss", {
       tile: tile,
-      url: tileUrl
+      url: tileUrl,
     });
     if (this.options.useOnlyCache) {
       // Offline, not cached
@@ -167,11 +186,11 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
       tile.crossOrigin = "Anonymous";
       tile.src = tileUrl;
     }
-  },
+  }
 
   // Async'ly saves the tile as a PouchDB attachment
   // Will run the done() callback (if any) when finished.
-  _saveTile: function(tile, tileUrl, existingRevision, done) {
+  _saveTile(tile, tileUrl, existingRevision, done?: () => void) {
     if (!this.options.saveToCache) {
       return;
     }
@@ -186,14 +205,14 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
     const format = this.options.cacheFormat;
 
     const _self = this;
-    canvas.toBlob(function(blob) {
+    canvas.toBlob(function (blob) {
       _self._db
         .put({
           _id: tileUrl,
           _rev: existingRevision,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         })
-        .then(function(status) {
+        .then(function (status) {
           return _self._db.putAttachment(
             tileUrl,
             "tile",
@@ -202,12 +221,12 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
             format
           );
         })
-        .then(function(resp) {
+        .then(function (resp) {
           if (done) {
             done();
           }
         })
-        .catch(function() {
+        .catch(function () {
           // Saving the tile to the cache might have failed,
           // but the tile itself has been loaded.
           if (done) {
@@ -215,17 +234,17 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
           }
         });
     }, format);
-  },
+  }
 
   // 'react-leaflet/TileLayer'
-  _createTile: function() {
+  _createTile() {
     return document.createElement("img");
-  },
+  }
 
   // Modified L.TileLayer.getTileUrl, this will use the zoom given by the parameter coords
   //  instead of the maps current zoomlevel.
-  _getTileUrl: function(coords) {
-    var zoom = coords.z;
+  _getTileUrl(coords: PointZ) {
+    let zoom = coords.z;
     if (this.options.zoomReverse) {
       zoom = this.options.maxZoom - zoom;
     }
@@ -247,15 +266,15 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
             : coords.y,
           z: this.options.maxNativeZoom
             ? Math.min(zoom, this.options.maxNativeZoom)
-            : zoom
+            : zoom,
         },
         this.options
       )
     );
-  },
+  }
 
   // from _getTiledPixelBounds
-  getTiledPixelBoundsByZoom: function(center, zoom) {
+  getTiledPixelBoundsByZoom(center, zoom) {
     const map = this._map,
       scale = map.getZoomScale(zoom, zoom),
       pixelCenter = map.project(center, zoom).floor(),
@@ -264,13 +283,13 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
       pixelCenter.subtract(halfSize),
       pixelCenter.add(halfSize)
     );
-  },
+  }
 
   // 🍂section PouchDB tile caching methods
   // 🍂method seed(bbox: LatLngBounds, minZoom: Number, maxZoom: Number): this
   // Starts seeding the cache given a bounding box and the minimum/maximum zoom levels
   // Use with care! This can spawn thousands of requests and flood tileservers!
-  seed: function(bbox, minZoom, maxZoom) {
+  seed(bbox, minZoom, maxZoom) {
     if (!this.options.useCache) return;
     if (minZoom > maxZoom) return;
     if (!this._map) return;
@@ -291,7 +310,7 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
 
       for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
         for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
-          const point = new Point(i, j);
+          const point = new Point(i, j) as PointZ;
           point.z = z;
           queue.push(this._getTileUrl(point));
         }
@@ -302,19 +321,18 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
       bbox: bbox,
       minZoom: minZoom,
       maxZoom: maxZoom,
-      queueLength: queue.length
+      queueLength: queue.length,
     };
     this.fire("seedstart", seedData);
     const tile = this._createTile();
-    tile._layer = this;
     this._seedOneTile(tile, queue, seedData);
     return this;
-  },
+  }
 
   // Uses a defined tile to eat through one item in the queue and
   //   asynchronously recursively call itself when the tile has
   //   finished loading.
-  _seedOneTile: function(tile, remaining, seedData) {
+  _seedOneTile(tile, remaining, seedData) {
     if (!remaining.length) {
       this.fire("seedend", seedData);
       return;
@@ -324,16 +342,16 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
       minZoom: seedData.minZoom,
       maxZoom: seedData.maxZoom,
       queueLength: seedData.queueLength,
-      remainingLength: remaining.length
+      remainingLength: remaining.length,
     });
 
     const url = remaining.shift();
 
     const _self = this;
-    this._db.get(url, function(err, data) {
+    this._db.get(url).then((data) => {
       if (!data) {
         /// FIXME: Do something on tile error!!
-        tile.onload = function(ev) {
+        tile.onload = function (ev) {
           _self._saveTile(tile, url, null); //(ev)
           _self._seedOneTile(tile, remaining, seedData);
         };
@@ -344,9 +362,13 @@ const LeafletPouchDBTileLayer = LeafletTileLayer.extend({
       }
     });
   }
-});
+}
 
-class PouchDBTileLayer extends GridLayer {
+export interface PouchDBTileLayerProps
+  extends PouchDBTileLayerOptions,
+    TileLayerProps {}
+
+class PouchDBTileLayer extends TileLayer<PouchDBTileLayerProps> {
   createLeafletElement(props) {
     return new LeafletPouchDBTileLayer(props.url, this.getOptions(props));
   }
@@ -359,22 +381,6 @@ class PouchDBTileLayer extends GridLayer {
   }
 }
 
-PouchDBTileLayer.propTypes = {
-  useCache: PropTypes.bool,
-  saveToCache: PropTypes.bool,
-  useOnlyCache: PropTypes.bool,
-  cacheFormat: PropTypes.string,
-  cacheMaxAge: PropTypes.number,
-  cacheNextZoomLevel: PropTypes.bool
-};
-
-PouchDBTileLayer.defaultProps = {
-  useCache: true,
-  saveToCache: true,
-  useOnlyCache: false,
-  cacheFormat: "image/png",
-  cacheMaxAge: 1 * 3600 * 1000,
-  cacheNextZoomLevel: true
-};
-
-export default withLeaflet(PouchDBTileLayer);
+const ReactPouchDBTileLayer = withLeaflet(PouchDBTileLayer);
+ReactPouchDBTileLayer.displayName = "ReactPouchDBTileLayer";
+export default ReactPouchDBTileLayer;
