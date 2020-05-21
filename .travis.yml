@@ -9,7 +9,7 @@ branches:
 notifications:
   email: false
 before_script:
-  - npm run transpile
+  - npm run build
 # script:
 #   - npm run test
 # before_install:
