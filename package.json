@@ -1,15 +1,18 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "1.1.0",
+  "version": "1.5.0-beta.2",
   "description": "",
-  "main": "dist/pouchdb-tilelayer.js",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "build:types": "tsc --declaration --emitDeclarationOnly --declarationDir types",
     "build:babel": "babel --delete-dir-on-start src --out-dir dist --extensions .ts,.js",
-    "build": "npm run lint && npm run build:types && npm run build:babel",
+    "build:esm": "tsc --module es2015 --target es2017 --outDir dist/esm",
+    "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
+    "build": "npm run lint && npm run build:types && npm run build:esm && npm run build:cjs",
     "transpile": "babel src -d dist",
-    "prepublishOnly": "npm run transpile"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
