@@ -1,6 +1,14 @@
 {
 	"compilerOptions": {
-		"target": "es2017",
+		"lib": [
+			"dom",
+			"dom.iterable",
+			"es6",
+			"es2015",
+			"es2020",
+			"scripthost"
+		],
+		"target": "es2020",
 		"module": "none",
 		"sourceMap": true,
 		"outDir": "dist",
@@ -13,9 +21,11 @@
 		"strict": false,
 		"noImplicitAny": true,
 		"moduleResolution": "node",
+		"removeComments": true
 	},
 	"include": [
 		"global.d.ts",
+		"type.d.ts",
 		"src"
 	]
 }

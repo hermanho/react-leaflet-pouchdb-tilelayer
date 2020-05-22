@@ -1,14 +1,15 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "1.5.0-beta.2",
+  "version": "1.5.0-beta.3",
   "description": "",
+  "type": "module",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "build:types": "tsc --declaration --emitDeclarationOnly --declarationDir types",
     "build:babel": "babel --delete-dir-on-start src --out-dir dist --extensions .ts,.js",
-    "build:esm": "tsc --module es2015 --target es2017 --outDir dist/esm",
+    "build:esm": "tsc --module ES2020 --target ES2020 --lib DOM,ES6,DOM.Iterable,ScriptHost,ES2020 --outDir dist/esm",
     "build:cjs": "tsc --module commonjs --target es5 --outDir dist/cjs",
     "build": "npm run lint && npm run build:types && npm run build:esm && npm run build:cjs",
     "transpile": "babel src -d dist",
