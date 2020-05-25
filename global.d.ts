@@ -13,3 +13,8 @@ declare namespace L {
     src: string;
   }
 }
+
+declare module "web-worker:*" {
+  const WokerFactory: new () => Worker;
+  export default WokerFactory;
+}

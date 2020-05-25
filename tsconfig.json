@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+		"declaration": true,
+		"declarationDir": "types",
 		"lib": [
 			"dom",
 			"dom.iterable",
@@ -8,8 +10,8 @@
 			"es2020",
 			"scripthost"
 		],
-		"target": "es2020",
-		"module": "none",
+		"target": "es2017",
+		"module": "ESNext",
 		"sourceMap": true,
 		"outDir": "dist",
 		"noUnusedLocals": true,
@@ -19,7 +21,6 @@
 		"emitDecoratorMetadata": true,
 		"experimentalDecorators": true,
 		"strict": false,
-		"noImplicitAny": true,
 		"moduleResolution": "node",
 		"removeComments": true
 	},

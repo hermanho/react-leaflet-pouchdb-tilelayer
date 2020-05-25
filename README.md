@@ -4,9 +4,12 @@
 [![Build Status](https://travis-ci.com/hermanho/react-leaflet-pouchdb-tilelayer.svg?branch=master)](https://travis-ci.com/hermanho/react-leaflet-pouchdb-tilelayer)
 [![dependencies](https://img.shields.io/david/hermanho/react-leaflet-pouchdb-tilelayer.svg?style=plastic)](https://david-dm.org/hermanho/react-leaflet-pouchdb-tilelayer)
 [![peer dependencies](https://img.shields.io/david/peer/hermanho/react-leaflet-pouchdb-tilelayer.svg?style=plastic)](https://david-dm.org/hermanho/react-leaflet-pouchdb-tilelayer?type=peer)
+[![](https://data.jsdelivr.com/v1/package/npm/react-leaflet-pouchdb-tilelayer/badge)](https://www.jsdelivr.com/package/npm/react-leaflet-pouchdb-tilelayer)
 
 [![leaflet compatibility](https://img.shields.io/npm/dependency-version/react-leaflet-pouchdb-tilelayer/peer/leaflet.svg?style=plastic)](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer)
 [![react-leaflet compatibility](https://img.shields.io/npm/dependency-version/react-leaflet-pouchdb-tilelayer/peer/react-leaflet.svg?style=plastic)](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer)
+[![react compatibility](https://img.shields.io/npm/dependency-version/react-leaflet-pouchdb-tilelayer/peer/react.svg?style=plastic)](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer)
+[![pouchdb compatibility](https://img.shields.io/npm/dependency-version/react-leaflet-pouchdb-tilelayer/peer/pouchdb.svg?style=plastic)](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer)
 
 React version of [Leaflet.TileLayer.PouchDBCached](https://github.com/MazeMap/Leaflet.TileLayer.PouchDBCached)
 

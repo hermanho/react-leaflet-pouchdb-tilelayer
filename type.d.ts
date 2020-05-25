@@ -1,4 +1,4 @@
-import {  LatLngBounds, TileLayerOptions } from "leaflet";
+import { LatLngBounds, TileLayerOptions } from "leaflet";
 
 interface PouchDBTileLayerOptions {
   useCache: boolean;
@@ -7,6 +7,7 @@ interface PouchDBTileLayerOptions {
   cacheFormat: string;
   cacheMaxAge: number;
   cacheNextZoomLevel: boolean;
+  cacheEdgeTile?: number;
 }
 
 type MergedPouchDBTileLayerOptions = PouchDBTileLayerOptions & TileLayerOptions;

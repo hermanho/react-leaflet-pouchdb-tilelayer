@@ -27,14 +27,16 @@ module.exports = {
     },
   },
   rules: {
+    "no-debugger": "off",
     "no-unused-vars": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
-    "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-this-alias": [
       "error",
       {
         allowedNames: ["_self"], // Allow `const self = this`; `[]` by default
       },
     ],
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/consistent-type-assertions": "off",
   },
 };
