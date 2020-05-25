@@ -79,7 +79,7 @@
     "react-leaflet": "^2.7.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.10.8",
-    "rollup-plugin-node-builtins": "^2.1.2",
+    "@joseph184/rollup-plugin-node-builtins": "^2.1.4",
     "rollup-plugin-peer-deps-external": "^2.2.2",
     "rollup-plugin-terser": "^6.0.1",
     "rollup-plugin-typescript2": "^0.27.1",

@@ -2,7 +2,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import typescript from "rollup-plugin-typescript2";
 import replace from "@rollup/plugin-replace";
-import builtins from "rollup-plugin-node-builtins";
+import builtins from "@joseph184/rollup-plugin-node-builtins";
 
 const input = "./src/worker/worker.ts";
 // const minifyExtension = (pathToFile) => pathToFile.replace(/\.js$/, ".min.js");
