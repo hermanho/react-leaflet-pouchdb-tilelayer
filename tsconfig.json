@@ -1,32 +1,36 @@
 {
-	"compilerOptions": {
-		"declaration": true,
-		"declarationDir": "types",
-		"lib": [
-			"dom",
-			"dom.iterable",
-			"es6",
-			"es2015",
-			"es2020",
-			"scripthost"
-		],
-		"target": "es2017",
-		"module": "ESNext",
-		"sourceMap": true,
-		"outDir": "dist",
-		"noUnusedLocals": true,
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"noEmit": false,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"strict": false,
-		"moduleResolution": "node",
-		"removeComments": true
-	},
-	"include": [
-		"global.d.ts",
-		"type.d.ts",
-		"src"
-	]
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "types",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es6",
+      "es2015",
+      "es2020",
+      "scripthost"
+    ],
+    "target": "es2017",
+    "module": "ESNext",
+    "sourceMap": true,
+    "outDir": "dist",
+    "noUnusedLocals": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strict": false,
+    "moduleResolution": "node",
+    "removeComments": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src"
+  ]
 }

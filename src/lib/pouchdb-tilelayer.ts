@@ -10,8 +10,9 @@ import {
   LatLngBounds,
   TileLayer as LeafletTileLayer,
   Util,
+  TileEvent,
 } from "leaflet";
-import { MergedPouchDBTileLayerOptions, OfflineTile } from "../type";
+import { MergedPouchDBTileLayerOptions, OfflineTile } from "./type";
 import { WorkerType } from "./worker/worker";
 import WorkerCode from "./worker.embedded";
 
@@ -23,49 +24,81 @@ const worker = new Worker(workerBlobURI);
 
 export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   _db?: PouchDB.Database<OfflineTile>;
-  options: MergedPouchDBTileLayerOptions;
+  pouchDBOptions: MergedPouchDBTileLayerOptions;
   worker: Comlink.Remote<WorkerType>;
 
   constructor(urlTemplate: string, options?: MergedPouchDBTileLayerOptions) {
     super(urlTemplate, options);
+    this.pouchDBOptions = options;
     if (options.useCache) {
       this._db = new PouchDB("offline-tiles");
       this.worker = Comlink.wrap(worker);
     } else {
       this._db = null;
     }
+
+    this.on("tileunload", this.onTileUnload);
   }
 
   // Overwrites L.TileLayer.prototype.createTile
   createTile(coords: Coords, done?: DoneCallback) {
-    const tile = document.createElement("img");
+    const debugTile = document.createElement("div");
+    const debugMsg = document.createElement("div");
+    const imgTile = document.createElement("img");
 
-    DomEvent.on(tile, "load", Util.bind(this._tileOnLoad, this, done, tile));
-    DomEvent.on(tile, "error", Util.bind(this._tileOnError, this, done, tile));
+    if (this.pouchDBOptions.debug) {
+      debugMsg.classList.add("debug");
+      debugMsg.style.outline = "1px solid green";
+      debugMsg.style.fontWeight = "bold";
+      debugMsg.style.fontSize = "12pt";
+      debugMsg.innerHTML = [coords.z, coords.x, coords.y].join("/");
+
+      debugTile.appendChild(imgTile);
+      debugTile.appendChild(debugMsg);
+      imgTile.style.position = "absolute";
+      imgTile.style.top = "0px";
+      imgTile.style.left = "0px";
+      debugMsg.style.position = "absolute";
+      debugMsg.style.top = "0px";
+      debugMsg.style.left = "0px";
+      debugMsg.style.width = "100%";
+      debugMsg.style.height = "100%";
+    }
+
+    DomEvent.on(
+      imgTile,
+      "load",
+      Util.bind(this._tileOnLoad, this, done, imgTile)
+    );
+    DomEvent.on(
+      imgTile,
+      "error",
+      Util.bind(this._tileOnError, this, done, imgTile)
+    );
 
     if (this.options.crossOrigin) {
-      tile.crossOrigin = "";
+      imgTile.crossOrigin = "";
     }
 
     /*
          Alt tag is *set to empty string to keep screen readers from reading URL and for compliance reasons
          http://www.w3.org/TR/WCAG20-TECHS/H67
          */
-    tile.alt = "";
+    imgTile.alt = "";
 
     const tileUrl = this.getTileUrl(coords);
 
-    if (this.options.useCache) {
+    if (this.pouchDBOptions.useCache) {
       this._db
         .get(
           tileUrl,
           // eslint-disable-next-line @typescript-eslint/camelcase
           { revs_info: true }
         )
-        .then(this._onCacheLookup(tile, tileUrl, done))
+        .then(this._onCacheLookup(imgTile, debugMsg, tileUrl, done))
         .catch((reason) => {
           if (reason && reason.status === 404) {
-            this._onCacheMiss(tile, tileUrl, done);
+            this._onCacheMiss(imgTile, debugMsg, tileUrl, done);
           } else {
             console.log("Cannot get from PouchDB");
             console.error(reason);
@@ -74,10 +107,12 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         });
     } else {
       // Fall back to standard behaviour
-      tile.src = tileUrl;
+      imgTile.src = tileUrl;
     }
 
-    if (this.options.cacheNextZoomLevel) {
+    if (this.pouchDBOptions.cacheNextZoomLevel) {
+      // Prevent deadlock in pouchdb (409)
+      const randomSleep = Math.floor(Math.random() * 5000);
       setTimeout(() => {
         if (this._map) {
           const zoom = this._clampZoom(coords.z + 1);
@@ -89,12 +124,16 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
                 zoom < this.options.minZoom)
             )
           ) {
-            console.debug(`cacheNextZoomLevel => ${JSON.stringify(coords)}`);
+            // console.debug(`cacheNextZoomLevel => ${JSON.stringify(coords)}`);
+            if (this.pouchDBOptions.debug) {
+              const j = JSON.stringify(coords);
+              debugMsg.innerHTML += `, cacheNextZoomLevel (${zoom})`;
+            }
             const tileBounds = this._tileCoordsToBounds(coords);
             this.seed(tileBounds, zoom, zoom);
           }
         }
-      }, 1000);
+      }, randomSleep);
     }
 
     // Cache edge tile
@@ -128,25 +167,35 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     //     }
     //   }, 1000);
     // }
-    return tile;
+    if (this.pouchDBOptions.debug) {
+      return debugTile;
+    } else {
+      return imgTile;
+    }
   }
 
   // Returns a callback (closure over tile/key/originalSrc) to be run when the DB
   //   backend is finished with a fetch operation.
-  _onCacheLookup(tile: HTMLImageElement, tileUrl: string, done: DoneCallback) {
+  _onCacheLookup(
+    tile: HTMLImageElement,
+    debugMsg: HTMLDivElement,
+    tileUrl: string,
+    done: DoneCallback
+  ) {
     return (
       data: PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta
     ) => {
       if (data) {
-        return this._onCacheHit(tile, tileUrl, data, done);
+        return this._onCacheHit(tile, debugMsg, tileUrl, data, done);
       } else {
-        return this._onCacheMiss(tile, tileUrl, done);
+        return this._onCacheMiss(tile, debugMsg, tileUrl, done);
       }
     };
   }
 
   _onCacheHit(
     tile: HTMLImageElement,
+    debugMsg: HTMLDivElement,
     tileUrl: string,
     data: PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta,
     done?: DoneCallback
@@ -155,30 +204,28 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       tile: tile,
       url: tileUrl,
     });
+    if (this.pouchDBOptions.debug) {
+      debugMsg.innerHTML += ", _onCacheHit";
+    }
 
-    const loadFromCache = async () => {
-      // Serve tile from cached data
-      // Read the attachment as blob
-      const blob = await this._db.getAttachment(tileUrl, "tile");
-      const url = URL.createObjectURL(blob);
-      tile.src = url;
-    };
-    const loadFromCacheFn = Util.bind(loadFromCache, this);
-
-    const _self = this;
     try {
       if (
-        Date.now() > data.timestamp + this.options.cacheMaxAge &&
-        !this.options.useOnlyCache
+        Date.now() > data.timestamp + this.pouchDBOptions.cacheMaxAge &&
+        !this.pouchDBOptions.useOnlyCache
       ) {
         // Tile is too old, try to refresh it
         console.debug(
           `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`
         );
 
-        if (_self.options.saveToCache) {
+        if (this.pouchDBOptions.debug) {
+          debugMsg.style.color = "orange";
+          debugMsg.innerHTML += `, too old(${new Date(data.timestamp)})`;
+        }
+
+        if (this.pouchDBOptions.saveToCache) {
           this.worker.saveTile(
-            this.options.cacheFormat,
+            this.pouchDBOptions.cacheFormat,
             true,
             tileUrl,
             data._revs_info[0].rev
@@ -186,27 +233,43 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         }
         tile.crossOrigin = "Anonymous";
         tile.src = tileUrl;
-
-        DomEvent.on(tile, "error", loadFromCacheFn);
       } else {
-        loadFromCache();
+        if (this.pouchDBOptions.debug) {
+          debugMsg.style.color = "green";
+          debugMsg.innerHTML += ", loadFromCache";
+        }
+        this._db.getAttachment(tileUrl, "tile").then((blob) => {
+          const url = URL.createObjectURL(blob);
+          tile.src = url;
+        });
       }
       return;
     } catch (reason) {
       if (reason && reason.status === 404) {
-        _self._onCacheMiss(tile, tileUrl, done);
+        this._onCacheMiss(tile, debugMsg, tileUrl, done);
       } else {
         throw reason;
       }
     }
   }
 
-  _onCacheMiss(tile: HTMLImageElement, tileUrl: string, done?: DoneCallback) {
+  _onCacheMiss(
+    tile: HTMLImageElement,
+    debugMsg: HTMLDivElement,
+    tileUrl: string,
+    done?: DoneCallback
+  ) {
     this.fire("tilecachemiss", {
       tile: tile,
       url: tileUrl,
     });
-    if (this.options.useOnlyCache) {
+
+    if (this.pouchDBOptions.debug) {
+      debugMsg.style.color = "white";
+      debugMsg.innerHTML += ", _onCacheMiss";
+    }
+
+    if (this.pouchDBOptions.useOnlyCache) {
       // Offline, not cached
       // 	console.log('Tile not in cache', tileUrl);
       // tile.onload = Util.falseFn;
@@ -214,18 +277,13 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     } else {
       // Online, not cached, request the tile normally
       // console.log('Requesting tile normally', tileUrl);
-      if (this.options.saveToCache) {
-        this.worker.saveTile(this.options.cacheFormat, true, tileUrl);
+      if (this.pouchDBOptions.saveToCache) {
+        this.worker.saveTile(this.pouchDBOptions.cacheFormat, true, tileUrl);
       }
       tile.crossOrigin = "Anonymous";
       tile.src = tileUrl;
     }
     return;
-  }
-
-  // 'react-leaflet/TileLayer'
-  _createTile() {
-    return document.createElement("img");
   }
 
   // Modified L.TileLayer.getTileUrl, this will use the zoom given by the parameter coords
@@ -260,7 +318,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   // Starts seeding the cache given a bounding box and the minimum/maximum zoom levels
   // Use with care! This can spawn thousands of requests and flood tileservers!
   seed(bbox: LatLngBounds, minZoom: number, maxZoom: number) {
-    if (!this.options.useCache) return;
+    if (!this.pouchDBOptions.useCache) return;
     if (minZoom > maxZoom) return;
     if (!this._map) return;
 
@@ -285,7 +343,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
           point.z = z;
           const url = this._getTileUrl(point);
           // queue.push(url);
-          this.worker.saveTile(this.options.cacheFormat, false, url);
+          this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, url);
           count++;
         }
       }
@@ -315,7 +373,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   }
 
   seedBounds(tileRange: Bounds, z: number) {
-    if (!this.options.useCache) return;
+    if (!this.pouchDBOptions.useCache) return;
     if (!this._map) return;
 
     // const queue: string[] = [];
@@ -327,7 +385,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         point.z = z;
         const url = this._getTileUrl(point);
         // queue.push(url);
-        this.worker.saveTile(this.options.cacheFormat, false, url);
+        this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, url);
         count++;
       }
     }
@@ -335,7 +393,17 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     console.debug(`seedBounds loaded ${count}`);
 
     // for (let i = 0; i < queue.length; i++) {
-    //   this.worker.saveTile(this.options.cacheFormat, false, queue[i]);
+    //   this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, queue[i]);
     // }
+  }
+
+  onTileUnload(e: TileEvent) {
+    let imgSrc = (e.tile as HTMLImageElement).src;
+    if (this.pouchDBOptions.debug) {
+      imgSrc = e.tile.querySelector("img").src;
+    }
+    if (imgSrc && imgSrc.startsWith("blob:")) {
+      URL.revokeObjectURL(imgSrc);
+    }
   }
 }

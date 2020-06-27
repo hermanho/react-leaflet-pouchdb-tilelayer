@@ -12,14 +12,12 @@ module.exports = {
     node: true,
     browser: true,
   },
-  plugins: ["@typescript-eslint", "prettier", "react"],
+  plugins: ["@typescript-eslint", "react"],
   extends: [
+    "react-app",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:react/recommended",
-    "plugin:prettier/recommended",
-    "prettier/@typescript-eslint",
-    "prettier",
+    "plugin:react/recommended"
   ],
   settings: {
     react: {

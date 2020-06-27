@@ -1,6 +1,6 @@
 import { GridLayer, withLeaflet, TileLayerProps } from "react-leaflet";
 import { LeafletPouchDBTileLayer } from "./pouchdb-tilelayer";
-import { PouchDBTileLayerOptions } from "../type";
+import { PouchDBTileLayerOptions } from "./type";
 
 export type PouchDBTileLayerProps = PouchDBTileLayerOptions & TileLayerProps;
 

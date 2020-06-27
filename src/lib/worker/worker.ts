@@ -1,6 +1,6 @@
 import PouchDB from "pouchdb-browser";
 import * as Comlink from "comlink";
-import { OfflineTile } from "../../type";
+import { OfflineTile } from "../type";
 
 const retryUntilWritten = async (db, doc, i = 0) => {
   try {
