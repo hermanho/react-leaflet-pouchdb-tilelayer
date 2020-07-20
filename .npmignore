@@ -1,4 +1,7 @@
 src
-.babelrc
 .gitignore
 .travis.yml
+createEmbeddedWorker.js
+rollup.config.js
+rollup.worker.config.js
+tsconfig.json

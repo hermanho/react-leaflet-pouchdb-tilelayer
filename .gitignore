@@ -61,3 +61,5 @@ typings/
 .next
 dist/
 types
+src/worker/
+src/lib/worker.embedded.js
