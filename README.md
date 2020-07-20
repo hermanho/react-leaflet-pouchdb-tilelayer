@@ -90,3 +90,11 @@ cache age in millisecond unit
 `{ cacheNextZoomLevel: true }`
 
 pre-load and cache the next level tile
+
+
+
+## Development
+1. Clone the project
+2. Run ```npm install```
+3. Run ```npm run build```
+4. Start coding
