@@ -3,10 +3,10 @@ import * as Comlink from "comlink";
 import { OfflineTile } from "../type";
 import retryUntilWritten from "../retry";
 
-
 class Worker {
   db?: PouchDB.Database<OfflineTile>;
   debug: boolean;
+  profiling: boolean;
 
   constructor() {
     this.db = new PouchDB("offline-tiles");
@@ -17,6 +17,9 @@ class Worker {
   setDebug(debug: boolean) {
     this.debug = debug;
   }
+  setProfiling(profiling: boolean) {
+    this.profiling = profiling;
+  }
 
   async saveTile(
     format: string,
@@ -24,6 +27,7 @@ class Worker {
     tileUrl: string,
     existingRevision?: string
   ) {
+    const t0 = performance.now();
     try {
       if (!override) {
         try {
@@ -51,7 +55,12 @@ class Worker {
           },
         },
       });
+      const t1 = performance.now();
       this.debug && console.debug(`${tileUrl}: Done`);
+      this.profiling &&
+        console.log(
+          `web worker saveTile ${tileUrl} took ${t1 - t0} milliseconds.`
+        );
     } catch (err) {
       console.error(err);
     }

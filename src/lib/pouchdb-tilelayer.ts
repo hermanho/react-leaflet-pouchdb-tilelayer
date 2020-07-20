@@ -38,6 +38,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       this.worker = worker && options.useWorker && Comlink.wrap(worker);
       if (this.worker) {
         this.worker.setDebug(options.debug);
+        this.worker.setProfiling(options.profiling);
       }
     } else {
       this._db = null;
@@ -220,11 +221,10 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         !this.pouchDBOptions.useOnlyCache
       ) {
         // Tile is too old, try to refresh it
-        console.debug(
-          `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`
-        );
-
         if (this.pouchDBOptions.debug) {
+          console.debug(
+            `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`
+          );
           debugMsg.style.color = "orange";
           debugMsg.innerHTML += `, too old(${new Date(data.timestamp)})`;
         }
@@ -330,6 +330,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       return;
     } else {
       (async () => {
+        const t0 = performance.now();
         try {
           if (!override) {
             try {
@@ -360,7 +361,12 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
               },
             },
           });
+          const t1 = performance.now();
           this.pouchDBOptions.debug && console.debug(`${tileUrl}: Done`);
+          this.pouchDBOptions.profiling &&
+            console.log(
+              `inline saveTile ${tileUrl} took ${t1 - t0} milliseconds.`
+            );
         } catch (err) {
           console.error(err);
         }

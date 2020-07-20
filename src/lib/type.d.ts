@@ -10,6 +10,7 @@ interface PouchDBTileLayerOptions {
   cacheEdgeTile?: number;
   useWorker?: boolean;
   debug?: bool;
+  profiling?: bool;
 }
 
 type MergedPouchDBTileLayerOptions = PouchDBTileLayerOptions & TileLayerOptions;
