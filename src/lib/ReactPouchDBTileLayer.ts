@@ -15,6 +15,7 @@ class PouchDBTileLayer extends GridLayer<
     cacheFormat: "image/png",
     cacheMaxAge: 1 * 3600 * 1000,
     cacheNextZoomLevel: true,
+    useWorker: true,
   };
 
   public createLeafletElement(props: PouchDBTileLayerProps) {

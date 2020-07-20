@@ -8,6 +8,7 @@ interface PouchDBTileLayerOptions {
   cacheMaxAge?: number;
   cacheNextZoomLevel?: boolean;
   cacheEdgeTile?: number;
+  useWorker?: boolean;
   debug?: bool;
 }
 

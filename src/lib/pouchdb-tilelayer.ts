@@ -15,12 +15,15 @@ import {
 import { MergedPouchDBTileLayerOptions, OfflineTile } from "./type";
 import { WorkerType } from "./worker/worker";
 import WorkerCode from "./worker.embedded";
+import retryUntilWritten from "./retry";
 
 const workerBlob = new Blob([WorkerCode], { type: "text/javascript" });
 const workerBlobURI = URL.createObjectURL(workerBlob);
 console.debug(`workerBlobURI: ${workerBlobURI}`);
 
-const worker = new Worker(workerBlobURI);
+const workerSupport = typeof Worker !== "undefined";
+
+const worker = workerSupport ? new Worker(workerBlobURI) : null;
 
 export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   _db?: PouchDB.Database<OfflineTile>;
@@ -32,7 +35,10 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     this.pouchDBOptions = options;
     if (options.useCache) {
       this._db = new PouchDB("offline-tiles");
-      this.worker = Comlink.wrap(worker);
+      this.worker = worker && options.useWorker && Comlink.wrap(worker);
+      if (this.worker) {
+        this.worker.setDebug(options.debug);
+      }
     } else {
       this._db = null;
     }
@@ -224,7 +230,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         }
 
         if (this.pouchDBOptions.saveToCache) {
-          this.worker.saveTile(
+          this.saveTile(
             this.pouchDBOptions.cacheFormat,
             true,
             tileUrl,
@@ -278,7 +284,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       // Online, not cached, request the tile normally
       // console.log('Requesting tile normally', tileUrl);
       if (this.pouchDBOptions.saveToCache) {
-        this.worker.saveTile(this.pouchDBOptions.cacheFormat, true, tileUrl);
+        this.saveTile(this.pouchDBOptions.cacheFormat, true, tileUrl);
       }
       tile.crossOrigin = "Anonymous";
       tile.src = tileUrl;
@@ -313,6 +319,55 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     return Util.template(this._url, Util.extend(data, this.options));
   }
 
+  saveTile(
+    format: string,
+    override: boolean,
+    tileUrl: string,
+    existingRevision?: string
+  ) {
+    if (this.worker) {
+      this.worker.saveTile(format, override, tileUrl, existingRevision);
+      return;
+    } else {
+      (async () => {
+        try {
+          if (!override) {
+            try {
+              const data = await this._db.get(tileUrl);
+              if (data) {
+                return;
+              }
+            } catch {
+              //
+            }
+          }
+          this.pouchDBOptions.debug &&
+            console.debug(`No data for ${tileUrl} in _seedOneTile`);
+          const response = await fetch(tileUrl);
+          const blob = await response.blob();
+          this.pouchDBOptions.debug &&
+            console.debug(`saveTileBlobThread: Saving ${tileUrl}`);
+
+          await retryUntilWritten(this._db, {
+            _id: tileUrl,
+            _rev: existingRevision,
+            timestamp: Date.now(),
+            _attachments: {
+              tile: {
+                // eslint-disable-next-line @typescript-eslint/camelcase
+                content_type: format,
+                data: blob,
+              },
+            },
+          });
+          this.pouchDBOptions.debug && console.debug(`${tileUrl}: Done`);
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+    }
+  }
+
   // 🍂section PouchDB tile caching methods
   // 🍂method seed(bbox: LatLngBounds, minZoom: Number, maxZoom: Number): this
   // Starts seeding the cache given a bounding box and the minimum/maximum zoom levels
@@ -343,12 +398,12 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
           point.z = z;
           const url = this._getTileUrl(point);
           // queue.push(url);
-          this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, url);
+          this.saveTile(this.pouchDBOptions.cacheFormat, false, url);
           count++;
         }
       }
     }
-    console.debug(`seed loaded ${count}`);
+    this.pouchDBOptions.debug && console.debug(`seed loaded ${count}`);
 
     // const seedData: SeedData = {
     //   bbox: bbox,
@@ -385,12 +440,12 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         point.z = z;
         const url = this._getTileUrl(point);
         // queue.push(url);
-        this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, url);
+        this.saveTile(this.pouchDBOptions.cacheFormat, false, url);
         count++;
       }
     }
 
-    console.debug(`seedBounds loaded ${count}`);
+    this.pouchDBOptions.debug && console.debug(`seedBounds loaded ${count}`);
 
     // for (let i = 0; i < queue.length; i++) {
     //   this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, queue[i]);
