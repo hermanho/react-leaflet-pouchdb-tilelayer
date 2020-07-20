@@ -16,7 +16,7 @@ function createEmbeddedWorkerFromBundle(workerBundleFile, workerEmbeddedFile) {
 }
 
 function create() {
-  const WORKER_FILE = "./src/lib/worker/workerified.js";
+  const WORKER_FILE = "./src/worker/worker.build.js";
   const WORKER_EMBEDDED_FILE = "./src/lib/worker.embedded.js";
 
   createEmbeddedWorkerFromBundle(WORKER_FILE, WORKER_EMBEDDED_FILE);

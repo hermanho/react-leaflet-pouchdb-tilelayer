@@ -11,7 +11,7 @@ export default [
   {
     input,
     output: {
-      file: "src/worker/workerified.js",
+      file: "src/worker/worker.build.js",
       format: "umd",
       intro: "var global = typeof self !== undefined ? self : this;",
     },
