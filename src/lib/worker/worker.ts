@@ -8,6 +8,7 @@ class Worker {
   debug: boolean;
   profiling: boolean;
   queue = [];
+  busy = 0;
 
   constructor() {
     this.db = new PouchDB("offline-tiles");
@@ -71,18 +72,20 @@ class Worker {
     };
 
     this.queue.push(queueItem);
-    setTimeout(this.tryNext);
+    if (this.busy <= 3) {
+      setTimeout(() => this.tryNext());
+      this.busy++;
+    }
   }
 
   tryNext() {
     if (this.queue.length === 0) {
+      this.busy--;
       return;
     }
     const queueItem = this.queue.shift();
     queueItem();
-    if (this.queue.length > 0) {
-      setTimeout(this.tryNext);
-    }
+    setTimeout(() => this.tryNext());
   }
 }
 
