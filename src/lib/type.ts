@@ -1,6 +1,6 @@
 import { LatLngBounds, TileLayerOptions } from "leaflet";
 
-interface PouchDBTileLayerOptions {
+export interface PouchDBTileLayerOptions extends TileLayerOptions {
   useCache?: boolean;
   saveToCache?: boolean;
   useOnlyCache?: boolean;
@@ -9,19 +9,17 @@ interface PouchDBTileLayerOptions {
   cacheNextZoomLevel?: boolean;
   cacheEdgeTile?: number;
   useWorker?: boolean;
-  debug?: bool;
-  profiling?: bool;
+  debug?: boolean;
+  profiling?: boolean;
 }
 
-type MergedPouchDBTileLayerOptions = PouchDBTileLayerOptions & TileLayerOptions;
-
-interface SeedData {
+export interface SeedData {
   bbox: LatLngBounds;
   minZoom: number;
   maxZoom: number;
   queueLength: number;
 }
 
-interface OfflineTile {
+export interface OfflineTile {
   timestamp: number;
 }

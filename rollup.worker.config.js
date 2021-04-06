@@ -13,7 +13,6 @@ export default [
     output: {
       file: "src/worker/worker.build.js",
       format: "umd",
-      intro: "var global = typeof self !== undefined ? self : this;",
     },
     plugins: [
       builtins(),
@@ -21,12 +20,14 @@ export default [
       commonjs(),
       typescript({
         typescript: require("typescript"),
-        tsconfigOverride: {
-          compilerOptions: {
-            declaration: false,
-            removeComments: false,
-          },
-        },
+        useTsconfigDeclarationDir: true,
+        // tsconfigOverride: {
+        //   compilerOptions: {
+        //     allowSyntheticDefaultImports: true,
+        //     declaration: false,
+        //     removeComments: false,
+        //   },
+        // },
       }),
       replace({
         "process.env.NODE_ENV": JSON.stringify("production"),

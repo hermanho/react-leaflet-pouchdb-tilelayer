@@ -27,6 +27,7 @@ module.exports = {
   rules: {
     "no-debugger": "off",
     "no-unused-vars": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/no-this-alias": [
       "error",
@@ -36,5 +37,6 @@ module.exports = {
     ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/consistent-type-assertions": "off",
+    "import/no-anonymous-default-export": "off"
   },
 };

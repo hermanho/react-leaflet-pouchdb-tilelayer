@@ -1,40 +1,37 @@
-import { GridLayer, withLeaflet, TileLayerProps } from "react-leaflet";
+import { TileLayerProps } from "react-leaflet";
+import {
+  createTileLayerComponent,
+  updateGridLayer,
+  withPane,
+} from '@react-leaflet/core'
 import { LeafletPouchDBTileLayer } from "./pouchdb-tilelayer";
 import { PouchDBTileLayerOptions } from "./type";
 
-export type PouchDBTileLayerProps = PouchDBTileLayerOptions & TileLayerProps;
-
-class PouchDBTileLayer extends GridLayer<
-  PouchDBTileLayerProps,
-  LeafletPouchDBTileLayer
-> {
-  static defaultProps: Partial<PouchDBTileLayerProps> = {
-    useCache: true,
-    saveToCache: true,
-    useOnlyCache: false,
-    cacheFormat: "image/png",
-    cacheMaxAge: 1 * 3600 * 1000,
-    cacheNextZoomLevel: true,
-    useWorker: true,
-  };
-
-  public createLeafletElement(props: PouchDBTileLayerProps) {
-    const el = new LeafletPouchDBTileLayer(props.url, this.getOptions(props));
-    // this.contextValue = props.leaflet;
-    return el;
-  }
-
-  public updateLeafletElement(
-    fromProps: PouchDBTileLayerProps,
-    toProps: PouchDBTileLayerProps
-  ) {
-    super.updateLeafletElement(fromProps, toProps);
-    if (toProps.url !== fromProps.url) {
-      this.leafletElement.setUrl(toProps.url);
-    }
-  }
+export interface PouchDBTileLayerProps extends PouchDBTileLayerOptions, TileLayerProps {
 }
 
-const ReactPouchDBTileLayer = withLeaflet(PouchDBTileLayer);
+
+export const ReactPouchDBTileLayer = createTileLayerComponent<
+  LeafletPouchDBTileLayer,
+  PouchDBTileLayerProps
+>(
+  function createPouchDBTileLayer({ url, ...options }, context) {
+    return {
+      instance: new LeafletPouchDBTileLayer(url, {
+        ...withPane(options, context),
+      }),
+      context,
+    }
+  },
+  function updatePouchDBTileLayer(layer, props, prevProps) {
+    updateGridLayer(layer, props, prevProps)
+
+    if (props != null && props.url !== prevProps.url) {
+      layer.setUrl(props.url)
+    }
+  }
+)
+
+
 ReactPouchDBTileLayer.displayName = "ReactPouchDBTileLayer";
 export default ReactPouchDBTileLayer;

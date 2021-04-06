@@ -1,18 +1,27 @@
 import React from "react";
-import { Map, TileLayer, LayersControl } from "react-leaflet";
+import { MapContainer, TileLayer, LayersControl } from "react-leaflet";
 import PouchDBTileLayer from "./lib/ReactPouchDBTileLayer";
-import GridDebugLayer from "./GridDebugLayer";
 
 import "./styles.css";
 import "leaflet/dist/leaflet.css";
 
 function App() {
   return (
-    <Map id="map" center={[22.287, 114.1694]} zoom={15}>
+    <MapContainer id="map" center={[22.287, 114.1694]} zoom={15}>
       <LayersControl position="topleft">
         <LayersControl.BaseLayer checked name="PouchDBTileLayer">
           <PouchDBTileLayer
+            useCache
+            crossOrigin
+            cacheNextZoomLevel
+            attribution='&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="PouchDBTileLayer debug">
+          <PouchDBTileLayer
             debug
+            profiling
             useCache
             crossOrigin
             cacheNextZoomLevel
@@ -27,7 +36,7 @@ function App() {
           />
         </LayersControl.BaseLayer>
       </LayersControl>
-    </Map>
+    </MapContainer>
   );
 }
 
