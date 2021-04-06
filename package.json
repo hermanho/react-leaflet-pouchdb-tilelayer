@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "2.0.0-beta.4",
+  "version": "2.1.0-beta.1",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
