@@ -98,3 +98,5 @@ pre-load and cache the next level tile
 2. Run ```npm install```
 3. Run ```npm run build```
 4. Start coding
+5. ```npm run build:worker ```
+6. ```npm start```
