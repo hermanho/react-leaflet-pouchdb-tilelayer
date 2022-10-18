@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "comlink": "^4.3.0",
-    "p-queue": "^7.0.0"
+    "p-queue": "^7.3.0"
   },
   "devDependencies": {
     "@joseph184/rollup-plugin-node-builtins": "^2.1.4",
