@@ -5,7 +5,6 @@ import replace from "@rollup/plugin-replace";
 import builtins from "@joseph184/rollup-plugin-node-builtins";
 
 const input = "./src/lib/worker/worker.ts";
-// const minifyExtension = (pathToFile) => pathToFile.replace(/\.js$/, ".min.js");
 
 export default [
   {

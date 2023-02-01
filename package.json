@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "2.3.0-beta.1",
+  "version": "3.0.0-beta.0",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -75,7 +75,6 @@
     "rimraf": "^4.1.2",
     "rollup": "^3.12.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-typescript2": "^0.34.1",
     "standard-version": "^9.5.0",
     "typescript": "4.9.5",
     "web-vitals": "^2.1.4"

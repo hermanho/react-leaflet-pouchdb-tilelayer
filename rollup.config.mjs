@@ -3,7 +3,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import external from "rollup-plugin-peer-deps-external";
 import terser from '@rollup/plugin-terser';
 import typescript from '@rollup/plugin-typescript';
-import pkg from "./package.json";
+import pkg from "./package.json" assert { type: "json" };
 
 const input = "./src/lib/index.ts";
 const minifyExtension = (pathToFile) => pathToFile.replace(/\.js$/, ".min.js");
@@ -37,10 +37,7 @@ export default [
       sourcemap: true,
     },
     plugins: [
-      typescript({
-        typescript: require("typescript"),
-        useTsconfigDeclarationDir: true,
-      }),
+      typescript(),
       external(),
       resolve(),
       commonjs(),
@@ -61,10 +58,7 @@ export default [
       exports: "named",
     },
     plugins: [
-      typescript({
-        typescript: require("typescript"),
-        useTsconfigDeclarationDir: true,
-      }),
+      typescript(),
       external(),
       resolve(),
       commonjs(),
@@ -83,10 +77,7 @@ export default [
       exports: "named",
     },
     plugins: [
-      typescript({
-        typescript: require("typescript"),
-        useTsconfigDeclarationDir: true,
-      }),
+      typescript(),
       external(),
       resolve(),
       commonjs(),
