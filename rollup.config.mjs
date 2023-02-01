@@ -1,8 +1,8 @@
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import external from "rollup-plugin-peer-deps-external";
-import { terser } from "rollup-plugin-terser";
-import typescript from "rollup-plugin-typescript2";
+import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 import pkg from "./package.json";
 
 const input = "./src/lib/index.ts";
@@ -19,10 +19,7 @@ export default [
       sourcemap: true,
     },
     plugins: [
-      typescript({
-        typescript: require("typescript"),
-        useTsconfigDeclarationDir: true,
-      }),
+      typescript(),
       external(),
       resolve(),
       commonjs(),

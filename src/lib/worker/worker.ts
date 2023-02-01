@@ -1,6 +1,6 @@
 import PouchDB from "pouchdb-browser";
 import * as Comlink from "comlink";
-import PQueue from "p-queue/dist/index";
+import PQueue from "p-queue";
 import { OfflineTile } from "../type";
 import retryUntilWritten from "../retry";
 
@@ -16,14 +16,14 @@ class Worker {
     this.db = new PouchDB("offline-tiles");
     this.debug = false;
     this.queue = new PQueue({ concurrency: 3 });
-    console.debug("Worker created");
+    console.debug(`[web worker] Worker created`);
   }
 
   setDebug(debug: boolean) {
-    this.debug = debug;
+    this.debug = Boolean(debug);
   }
   setProfiling(profiling: boolean) {
-    this.profiling = profiling;
+    this.profiling = Boolean(profiling);
   }
 
   fetchPromise = async (
@@ -44,10 +44,10 @@ class Worker {
           //
         }
       }
-      this.debug && console.debug(`No data for ${tileUrl} in _seedOneTile`);
+      this.debug && console.debug(`[web worker] No data for ${tileUrl} in _seedOneTile`);
       const response = await fetch(tileUrl);
       const blob = await response.blob();
-      this.debug && console.debug(`saveTileBlobThread: Saving ${tileUrl}`);
+      this.debug && console.debug(`[web worker] SaveTileBlobThread: Saving ${tileUrl}`);
       await retryUntilWritten(this.db, {
         _id: tileUrl,
         _rev: existingRevision,
@@ -60,10 +60,10 @@ class Worker {
         },
       });
       const t1 = performance.now();
-      this.debug && console.debug(`${tileUrl}: Done`);
+      this.debug && console.debug(`[web worker] ${tileUrl}: Done`);
       this.profiling &&
         console.log(
-          `web worker saveTile ${tileUrl} took ${Math.ceil(t1 - t0)} milliseconds.`
+          `[web worker] SaveTile ${tileUrl} took ${Math.ceil(t1 - t0)} milliseconds.`
         );
     } catch (err) {
       console.error(err);

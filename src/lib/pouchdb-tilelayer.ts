@@ -1,6 +1,7 @@
 import PouchDB from "pouchdb-browser";
 import * as Comlink from "comlink";
 import {
+  Map,
   Bounds,
   Coords,
   DomEvent,
@@ -23,8 +24,6 @@ console.debug(`workerBlobURI: ${workerBlobURI}`);
 
 const workerSupport = typeof Worker !== "undefined";
 
-const worker = workerSupport ? new Worker(workerBlobURI) : null;
-
 const defaultOption: PouchDBTileLayerOptions = {
   useCache: true,
   saveToCache: true,
@@ -38,24 +37,12 @@ const defaultOption: PouchDBTileLayerOptions = {
 export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   _db?: PouchDB.Database<OfflineTile>;
   pouchDBOptions: PouchDBTileLayerOptions;
-  worker: Comlink.Remote<WorkerType>;
+  _worker?: Worker;
+  workerRemote: Comlink.Remote<WorkerType>;
 
   constructor(urlTemplate: string, options?: PouchDBTileLayerOptions) {
-    super(urlTemplate, options);
+    super(urlTemplate, Object.assign({}, defaultOption, options));
     this.pouchDBOptions = Object.assign({}, defaultOption, options);
-    if (options.useCache) {
-      this._db = new PouchDB("offline-tiles");
-      this.worker = worker && options.useWorker && Comlink.wrap(worker);
-      if (this.worker) {
-        this.worker.setDebug(options.debug);
-        this.worker.setProfiling(options.profiling);
-      }
-      if (worker && options.useWorker) {
-        console.warn('something warn tha cannot create worker 😣')
-      }
-    } else {
-      this._db = null;
-    }
 
     this.on("tileunload", this.onTileUnload);
 
@@ -288,7 +275,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
           debugMsg.innerHTML += ", loadFromCache";
         }
         const newSrc = await this._db.getAttachment(tileUrl, "tile").then((blob) => {
-          const url = URL.createObjectURL(blob);
+          const url = URL.createObjectURL(blob as Blob);
           tile.src = url;
           const t1 = performance.now();
           if (this.pouchDBOptions.debug) {
@@ -339,7 +326,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       tile.crossOrigin = "Anonymous";
       src = tileUrl;
     }
-    tile.src = src;
+    // tile.src = src;
     return src;
   }
 
@@ -376,8 +363,8 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     tileUrl: string,
     existingRevision?: string
   ) {
-    if (this.worker) {
-      this.worker.saveTile(format, override, tileUrl, existingRevision);
+    if (this.workerRemote) {
+      this.workerRemote.saveTile(format, override, tileUrl, existingRevision);
       return;
     } else {
       (async () => {
@@ -516,5 +503,34 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     if (imgSrc && imgSrc.startsWith("blob:")) {
       URL.revokeObjectURL(imgSrc);
     }
+  }
+
+  onAdd(map: Map): this {
+    if (this.pouchDBOptions.useCache) {
+      this._db = new PouchDB("offline-tiles");
+      this._worker = workerSupport ? new Worker(workerBlobURI) : null;
+      this.workerRemote = this._worker && this.pouchDBOptions.useWorker && Comlink.wrap(this._worker);
+      if (this.workerRemote) {
+        this.workerRemote.setDebug(this.pouchDBOptions.debug);
+        this.workerRemote.setProfiling(this.pouchDBOptions.profiling);
+      }
+      if (workerSupport && !this._worker && this.pouchDBOptions.useWorker) {
+        console.warn('something wrong that cannot create worker 😣')
+      }
+    } else {
+      this._db = null;
+    }
+    super.onAdd(map);
+    return this;
+  }
+
+  onRemove(map: Map) {
+    super.onRemove(map);
+    this._worker?.terminate();
+    this._worker = null;
+    this.workerRemote = null;
+    this._db.close();
+    this._db = null;
+    return this;
   }
 }
