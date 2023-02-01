@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0-beta.1](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v2.1.0-beta.1...v3.0.0-beta.1) (2023-02-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* support React 18
+
+### feature
+
+* support React 18 ([814dc4a](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/814dc4a2582a59be3083c43afe0a6d0ce72394b6))
+
 ## [3.0.0-beta.0](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v2.1.0-beta.1...v3.0.0-beta.0) (2023-02-01)
 
 
