@@ -1,6 +1,6 @@
 {
   "name": "react-leaflet-pouchdb-tilelayer",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta.2",
   "description": "",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -45,6 +45,7 @@
     "react-leaflet": "^4.2.0"
   },
   "dependencies": {
+    "@react-leaflet/core": "^2.1.0",
     "comlink": "^4.4.0",
     "p-queue": "^7.3.0"
   },
