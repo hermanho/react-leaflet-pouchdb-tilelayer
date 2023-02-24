@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "@react-leaflet/core": "^2.1.0",
-    "comlink": "^4.4.0",
+    "comlink": "^4.4.1",
     "p-queue": "^7.3.0"
   },
   "devDependencies": {
