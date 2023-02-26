@@ -47,7 +47,7 @@
   "dependencies": {
     "@react-leaflet/core": "^2.1.0",
     "comlink": "^4.4.0",
-    "p-queue": "^7.3.0"
+    "p-queue": "^7.3.3"
   },
   "devDependencies": {
     "@joseph184/rollup-plugin-node-builtins": "^2.1.4",
