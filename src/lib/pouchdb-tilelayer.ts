@@ -13,6 +13,7 @@ import {
   Util,
   TileEvent,
 } from "leaflet";
+import escapeHtml from 'escape-html';
 import { PouchDBTileLayerOptions, OfflineTile } from "./type";
 import { WorkerType } from "./worker/worker";
 import WorkerCode from "./worker.embedded";
@@ -162,7 +163,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
             // console.debug(`cacheNextZoomLevel => ${JSON.stringify(coords)}`);
             if (this.pouchDBOptions.debug) {
               // const j = JSON.stringify(coords);
-              debugMsg.innerHTML += `, cacheNextZoomLevel (${zoom})`;
+              debugMsg.innerHTML += escapeHtml(`, cacheNextZoomLevel (${zoom})`);
             }
             const tileBounds = this._tileCoordsToBounds(coords);
             this.seed(tileBounds, zoom, zoom);
@@ -250,7 +251,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
             `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`
           );
           debugMsg.style.color = "orange";
-          debugMsg.innerHTML += `, too old(${new Date(data.timestamp)})`;
+          debugMsg.innerHTML += escapeHtml(`, too old(${new Date(data.timestamp)})`);
         }
 
         if (this.pouchDBOptions.saveToCache) {
@@ -264,7 +265,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         const t1 = performance.now();
         if (this.pouchDBOptions.debug) {
           debugMsg.innerHTML +=
-            `, ${tileUrl} took ${t1 - t0} milliseconds.`
+            escapeHtml(`, ${tileUrl} took ${t1 - t0} milliseconds.`)
         }
         tile.crossOrigin = "Anonymous";
         tile.src = tileUrl;
@@ -280,7 +281,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
           const t1 = performance.now();
           if (this.pouchDBOptions.debug) {
             debugMsg.innerHTML +=
-              `,getAttachment ${tileUrl} took ${Math.ceil(t1 - t0)} milliseconds.`
+              escapeHtml(`,getAttachment ${tileUrl} took ${Math.ceil(t1 - t0)} milliseconds.`)
           }
           return url;
         });
