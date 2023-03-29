@@ -35,6 +35,15 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npm run build
+      - id: check_package_version
+        run: |
+          cat package.json | jq -r '.version' > $PACKAGE_VERSION
+          echo "packge_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+      - run: npm publish --access public --tag beta
+        if: ${{ contains(steps.check_package_version.outputs.packge_version, 'beta') }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: npm publish --access public
+        if: ${{ !contains(steps.check_package_version.outputs.packge_version, 'beta') }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
