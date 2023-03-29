@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0-beta](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v3.0.0-beta.3...v3.1.0-beta) (2023-03-29)
+
+
+### Features
+
+* bump package ([939b060](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/939b0601691a87faa413cd959d802416a4d936cb))
+
+
+### Bug Fixes
+
+* github action ([c64b13a](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/c64b13aa8fe378c410940f538802ffe67f9b4ec1))
+* XSS mitigation ([4c7d2d6](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/4c7d2d64f7ced51401bd0ae5f3126de6785ae6a5))
+
+
+### Miscellaneous Chores
+
+* update workflow ([bffb661](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/bffb6612633462d73a2067ea6e45d4aa7a8028fd))
+
 ## [3.0.0-beta.3](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v3.0.0-beta.1...v3.0.0-beta.3) (2023-02-01)
 
 ## [3.0.0-beta.2](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v3.0.0-beta.1...v3.0.0-beta.2) (2023-02-01)
