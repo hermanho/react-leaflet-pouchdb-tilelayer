@@ -14,14 +14,18 @@ React version of [Leaflet.TileLayer.PouchDBCached](https://github.com/MazeMap/Le
 ### Install via NPM
 
 ```bash
-npm install react-leaflet-pouchdb-tilelayer --save
+npm i react-leaflet-pouchdb-tilelayer --save
+```
+OR
+```bash
+npm i react-leaflet-pouchdb-tilelayer@3.2.2-beta --save
 ```
 
 ### Demo
 
 https://codesandbox.io/p/sandbox/strange-field-t7l4ly
 
-### Usage with React-Leaflet v2
+### Usage with React-Leaflet v3
 
 This plugin is compatible with version 2 of React-Leaflet
 
