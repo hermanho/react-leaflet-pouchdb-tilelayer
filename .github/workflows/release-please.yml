@@ -16,12 +16,16 @@ jobs:
     outputs:
       release_created: ${{steps.release.outputs.release_created}}
     steps:
+      - id: check_package_version
+        run: |
+          PACKAGE_VERSION=$(cat package.json | jq -r '.version')
+          echo "packge_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
       - uses: google-github-actions/release-please-action@v3
         id: release
         with:
           release-type: node
           package-name: react-leaflet-pouchdb-tilelayer
-          prerelease: true
+          prerelease: ${{ contains(steps.check_package_version.outputs.packge_version, 'beta') }}
 
   deploy:
     runs-on: ubuntu-latest
