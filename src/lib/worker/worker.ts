@@ -1,26 +1,33 @@
-import PouchDB from "pouchdb-browser";
-import * as Comlink from "comlink";
-import PQueue from "p-queue";
-import { OfflineTile } from "../type";
-import retryUntilWritten from "../retry";
-
+import PouchDB from 'pouchdb-browser';
+import * as Comlink from 'comlink';
+import PQueue from 'p-queue';
+import { OfflineTile } from '../type';
+import retryUntilWritten from '../retry';
 
 class Worker {
-  db?: PouchDB.Database<OfflineTile>;
-  debug: boolean;
+  db: PouchDB.Database<OfflineTile>;
+  isDebug: boolean;
   profiling: boolean;
   queue: PQueue;
-  busy = 0;
+  debug: Console['debug'];
 
   constructor() {
-    this.db = new PouchDB("offline-tiles");
-    this.debug = false;
-    this.queue = new PQueue({ concurrency: 3 });
+    this.db = new PouchDB('offline-tiles');
+    this.isDebug = false;
+    // openstreetmap tile server have rate limit. It will return 418 when too many request
+    this.queue = new PQueue({ concurrency: 3, intervalCap: 2, interval: 500 });
+    this.profiling = false;
     console.debug(`[web worker] Worker created`);
+    this.debug = function () {};
   }
 
   setDebug(debug: boolean) {
-    this.debug = Boolean(debug);
+    this.isDebug = Boolean(debug);
+    if (this.isDebug) {
+      this.debug = console.debug.bind(console);
+    } else {
+      this.debug = function () {};
+    }
   }
   setProfiling(profiling: boolean) {
     this.profiling = Boolean(profiling);
@@ -28,55 +35,72 @@ class Worker {
 
   fetchPromise = async (
     format: string,
-    override: boolean,
+    tileDbKeyId: string,
     tileUrl: string,
-    existingRevision?: string
   ) => {
+    let data:
+      | (PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta)
+      | null = null;
+    try {
+      data = await this.db.get(tileDbKeyId, { revs_info: true });
+    } catch {
+      //
+    }
     const t0 = performance.now();
     try {
-      if (!override) {
-        try {
-          const data = await this.db.get(tileUrl);
-          if (data) {
-            return;
-          }
-        } catch {
-          //
-        }
-      }
-      this.debug && console.debug(`[web worker] No data for ${tileUrl} in _seedOneTile`);
-      const response = await fetch(tileUrl);
-      const blob = await response.blob();
-      this.debug && console.debug(`[web worker] SaveTileBlobThread: Saving ${tileUrl}`);
-      await retryUntilWritten(this.db, {
-        _id: tileUrl,
-        _rev: existingRevision,
-        timestamp: Date.now(),
-        _attachments: {
-          tile: {
-            content_type: format,
-            data: blob,
-          },
+      this.debug(`[web worker] No data for ${tileUrl} in _seedOneTile`);
+      const response = await fetch(tileUrl, {
+        headers: {
+          Accept:
+            'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
         },
       });
-      const t1 = performance.now();
-      this.debug && console.debug(`[web worker] ${tileUrl}: Done`);
-      this.profiling &&
-        console.log(
-          `[web worker] SaveTile ${tileUrl} took ${Math.ceil(t1 - t0)} milliseconds.`
-        );
+      const blob = await response.blob();
+      if (blob) {
+        this.debug(`[web worker] SaveTileBlobThread: Saving ${tileUrl}`);
+        await retryUntilWritten(this.db, {
+          _id: tileDbKeyId,
+          _rev: data?._rev,
+          timestamp: Date.now(),
+          _attachments: {
+            tile: {
+              content_type: format,
+              data: blob,
+            },
+          },
+        });
+        const t1 = performance.now();
+        this.debug(`[web worker] ${tileUrl}: Done`);
+        this.profiling &&
+          console.log(
+            `[web worker] SaveTile ${tileUrl} took ${Math.ceil(
+              t1 - t0,
+            )} milliseconds.`,
+          );
+      } else {
+        this.debug(`[web worker] ${tileUrl}: No data returned`);
+      }
     } catch (err) {
       console.error(err);
     }
-  }
+  };
 
   async saveTile(
     format: string,
     override: boolean,
+    tileDbKeyId: string,
     tileUrl: string,
-    existingRevision?: string
   ) {
-    this.queue.add(() => this.fetchPromise(format, override, tileUrl, existingRevision))
+    try {
+      const data = await this.db.get(tileDbKeyId);
+      if (!override && data) {
+        this.debug('[web worker] No override for tileDbKeyId', tileDbKeyId);
+        return;
+      }
+    } catch {
+      //
+    }
+    this.queue.add(() => this.fetchPromise(format, tileDbKeyId, tileUrl));
   }
 }
 

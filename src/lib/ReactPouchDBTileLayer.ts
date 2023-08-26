@@ -1,15 +1,15 @@
-import { TileLayerProps } from "react-leaflet";
+import { TileLayerProps } from 'react-leaflet';
 import {
   createTileLayerComponent,
   updateGridLayer,
   withPane,
-} from '@react-leaflet/core'
-import { LeafletPouchDBTileLayer } from "./pouchdb-tilelayer";
-import { PouchDBTileLayerOptions } from "./type";
+} from '@react-leaflet/core';
+import { LeafletPouchDBTileLayer } from './pouchdb-tilelayer';
+import { PouchDBTileLayerOptions } from './type';
 
-export interface PouchDBTileLayerProps extends PouchDBTileLayerOptions, TileLayerProps {
-}
-
+export interface PouchDBTileLayerProps
+  extends PouchDBTileLayerOptions,
+    TileLayerProps {}
 
 export const ReactPouchDBTileLayer = createTileLayerComponent<
   LeafletPouchDBTileLayer,
@@ -21,17 +21,16 @@ export const ReactPouchDBTileLayer = createTileLayerComponent<
         ...withPane(options, context),
       }),
       context,
-    }
+    };
   },
   function updatePouchDBTileLayer(layer, props, prevProps) {
-    updateGridLayer(layer, props, prevProps)
+    updateGridLayer(layer, props, prevProps);
 
     if (props != null && props.url !== prevProps.url) {
-      layer.setUrl(props.url)
+      layer.setUrl(props.url);
     }
-  }
-)
+  },
+);
 
-
-ReactPouchDBTileLayer.displayName = "ReactPouchDBTileLayer";
+ReactPouchDBTileLayer.displayName = 'ReactPouchDBTileLayer';
 export default ReactPouchDBTileLayer;

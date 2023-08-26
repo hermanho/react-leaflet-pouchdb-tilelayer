@@ -1,20 +1,10 @@
-import PouchDB from "pouchdb-browser";
-import { OfflineTile } from "./type";
+import { OfflineTile } from './type';
 
 const retryUntilWritten = async (
   db: PouchDB.Database<OfflineTile>,
   doc: PouchDB.Core.PutDocument<OfflineTile>,
-  i = 0
+  i = 0,
 ): Promise<PouchDB.Core.Response> => {
-  // try {
-  //   const origDoc = await db.get(doc._id);
-  //   doc._rev = origDoc._rev;
-  // } catch (err) {
-  //   if (err.status !== 404) {
-  //     console.error(`Error in retryUntilWritten`);
-  //     console.error(err);
-  //   }
-  // }
   try {
     return db.put(doc);
   } catch (err) {
@@ -24,10 +14,10 @@ const retryUntilWritten = async (
       console.error(err);
       throw err;
     }
-    const p = new Promise<PouchDB.Core.Response>((resolve, reject) => {
+    const p = new Promise<PouchDB.Core.Response>((resolve) => {
       setTimeout(() => {
         resolve(retryUntilWritten(db, doc, i++));
-      }, 50)
+      }, 50);
     });
     return p;
   }

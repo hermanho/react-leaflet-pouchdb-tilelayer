@@ -1,4 +1,4 @@
-import { LatLngBounds, TileLayerOptions } from "leaflet";
+import { LatLngBounds, TileLayerOptions } from 'leaflet';
 
 export interface PouchDBTileLayerOptions extends TileLayerOptions {
   useCache?: boolean;

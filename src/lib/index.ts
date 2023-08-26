@@ -1,3 +1,4 @@
-export * from "./pouchdb-tilelayer";
-export * from "./ReactPouchDBTileLayer";
-export { default } from "./ReactPouchDBTileLayer";
+export * from './pouchdb-tilelayer';
+export * from './ReactPouchDBTileLayer';
+import { ReactPouchDBTileLayer } from './ReactPouchDBTileLayer';
+export default ReactPouchDBTileLayer;

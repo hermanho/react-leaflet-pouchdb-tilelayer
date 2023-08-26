@@ -1,5 +1,5 @@
-import PouchDB from "pouchdb-browser";
-import * as Comlink from "comlink";
+import PouchDB from 'pouchdb-browser';
+import * as Comlink from 'comlink';
 import {
   Map,
   Bounds,
@@ -12,24 +12,20 @@ import {
   TileLayer as LeafletTileLayer,
   Util,
   TileEvent,
-} from "leaflet";
+} from 'leaflet';
 import escapeHtml from 'escape-html';
-import { PouchDBTileLayerOptions, OfflineTile } from "./type";
-import { WorkerType } from "./worker/worker";
-import WorkerCode from "./worker.embedded";
-import retryUntilWritten from "./retry";
+import { PouchDBTileLayerOptions, OfflineTile } from './type';
+import { WorkerType } from './worker/worker';
+import Worker from './worker/worker?worker&inline';
+import retryUntilWritten from './retry';
 
-const workerBlob = new Blob([WorkerCode], { type: "text/javascript" });
-const workerBlobURI = URL.createObjectURL(workerBlob);
-console.debug(`workerBlobURI: ${workerBlobURI}`);
-
-const workerSupport = typeof Worker !== "undefined";
+const workerSupport = typeof Worker !== 'undefined';
 
 const defaultOption: PouchDBTileLayerOptions = {
   useCache: true,
   saveToCache: true,
   useOnlyCache: false,
-  cacheFormat: "image/png",
+  cacheFormat: 'image/png',
   cacheMaxAge: 1 * 3600 * 1000,
   cacheNextZoomLevel: true,
   useWorker: true,
@@ -37,16 +33,22 @@ const defaultOption: PouchDBTileLayerOptions = {
 
 export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   _db?: PouchDB.Database<OfflineTile>;
-  pouchDBOptions: PouchDBTileLayerOptions;
+  pouchDBOptions: Required<PouchDBTileLayerOptions>;
   _worker?: Worker;
-  workerRemote: Comlink.Remote<WorkerType>;
+  workerRemote?: Comlink.Remote<WorkerType>;
+  debug: Console['debug'];
 
   constructor(urlTemplate: string, options?: PouchDBTileLayerOptions) {
     super(urlTemplate, Object.assign({}, defaultOption, options));
-    this.pouchDBOptions = Object.assign({}, defaultOption, options);
+    this.pouchDBOptions = Object.assign(
+      {},
+      defaultOption,
+      options,
+    ) as Required<PouchDBTileLayerOptions>;
 
-    this.on("tileunload", this.onTileUnload);
+    this.on('tileunload', this.onTileUnload);
 
+    this.debug = function () {};
     if (this.pouchDBOptions.debug) {
       const debugStyleNode = document.createElement('style');
       debugStyleNode.innerHTML = `
@@ -66,51 +68,52 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         padding: 5px;
       } `;
       document.getElementsByTagName('head')[0].appendChild(debugStyleNode);
+      this.debug = console.debug.bind(window.console);
     }
   }
 
   // Overwrites L.TileLayer.prototype.createTile
   createTile(coords: Coords, done?: DoneCallback) {
-    const debugTile = document.createElement("div");
-    const debugMsgContainer = document.createElement("div");
-    const debugMsg = document.createElement("div");
-    const imgTile = document.createElement("img");
+    const debugTile = document.createElement('div');
+    const debugMsgContainer = document.createElement('div');
+    const debugMsg = document.createElement('div');
+    const imgTile = document.createElement('img');
 
     if (this.pouchDBOptions.debug) {
-      debugMsgContainer.classList.add("debug");
-      debugMsgContainer.classList.add("debugContainerCSS");
-      debugMsg.classList.add("debug");
-      debugMsg.classList.add("debugMsgCSS");
-      debugMsg.innerHTML = [coords.z, coords.x, coords.y].join("/");
+      debugMsgContainer.classList.add('debug');
+      debugMsgContainer.classList.add('debugContainerCSS');
+      debugMsg.classList.add('debug');
+      debugMsg.classList.add('debugMsgCSS');
+      debugMsg.innerHTML = [coords.z, coords.x, coords.y].join('/');
 
       debugMsgContainer.appendChild(debugMsg);
       debugTile.appendChild(imgTile);
       debugTile.appendChild(debugMsgContainer);
-      imgTile.style.position = "absolute";
-      imgTile.style.top = "0px";
-      imgTile.style.left = "0px";
+      imgTile.style.position = 'absolute';
+      imgTile.style.top = '0px';
+      imgTile.style.left = '0px';
     }
 
     DomEvent.on(
       imgTile,
-      "load",
-      Util.bind(this._tileOnLoad, this, done, imgTile)
+      'load',
+      Util.bind(this._tileOnLoad, this, done, imgTile),
     );
     DomEvent.on(
       imgTile,
-      "error",
-      Util.bind(this._tileOnError, this, done, imgTile)
+      'error',
+      Util.bind(this._tileOnError, this, done, imgTile),
     );
 
     if (this.options.crossOrigin) {
-      imgTile.crossOrigin = "";
+      imgTile.crossOrigin = '';
     }
 
     /*
          Alt tag is *set to empty string to keep screen readers from reading URL and for compliance reasons
          http://www.w3.org/TR/WCAG20-TECHS/H67
          */
-    imgTile.alt = "";
+    imgTile.alt = '';
 
     const tileUrl = this.getTileUrl(coords);
 
@@ -118,30 +121,26 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       (async () => {
         let cacheDone = false;
         setTimeout(() => {
-          if (!cacheDone) {
+          if (!cacheDone && imgTile.src !== tileUrl) {
             imgTile.src = tileUrl;
           }
         }, 500);
         try {
-          const data = await this._db
-            .get(
-              tileUrl,
-              { revs_info: true }
-            )
-          await this._onCacheLookup(data, imgTile, debugMsg, tileUrl);
+          await this._onCacheLookup(imgTile, debugMsg, coords);
           cacheDone = true;
         } catch (reason) {
-          imgTile.src = tileUrl;
-          if (reason && reason.status === 404) {
-            this._onCacheMiss(imgTile, debugMsg, tileUrl);
+          if (imgTile.src !== tileUrl) {
+            imgTile.src = tileUrl;
+          }
+          if (reason && (reason as any).status === 404) {
+            this._onCacheMiss(imgTile, debugMsg, coords);
           } else {
-            console.log("Cannot get from PouchDB");
+            console.log('Cannot get from PouchDB');
             console.error(reason);
             throw reason;
           }
         }
       })();
-
     } else {
       imgTile.src = tileUrl;
     }
@@ -160,10 +159,10 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
                 zoom < this.options.minZoom)
             )
           ) {
-            // console.debug(`cacheNextZoomLevel => ${JSON.stringify(coords)}`);
             if (this.pouchDBOptions.debug) {
-              // const j = JSON.stringify(coords);
-              debugMsg.innerHTML += escapeHtml(`, cacheNextZoomLevel (${zoom})`);
+              debugMsg.innerHTML += escapeHtml(
+                `, cacheNextZoomLevel (${zoom})`,
+              );
             }
             const tileBounds = this._tileCoordsToBounds(coords);
             this.seed(tileBounds, zoom, zoom);
@@ -212,32 +211,38 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
 
   // Returns a callback (closure over tile/key/originalSrc) to be run when the DB
   //   backend is finished with a fetch operation.
-  _onCacheLookup(
-    data: OfflineTile & PouchDB.Core.IdMeta & PouchDB.Core.GetMeta,
+  async _onCacheLookup(
     tile: HTMLImageElement,
     debugMsg: HTMLDivElement,
-    tileUrl: string
+    coords: Coords,
   ) {
+    const tileKeyId = this._getTileDBKey(coords);
+    const data = await this._db?.get(tileKeyId);
     if (data) {
-      return this._onCacheHit(tile, debugMsg, tileUrl, data);
+      return this._onCacheHit(tile, debugMsg, coords, data);
     } else {
-      return this._onCacheMiss(tile, debugMsg, tileUrl);
+      return this._onCacheMiss(tile, debugMsg, coords);
     }
   }
 
   async _onCacheHit(
     tile: HTMLImageElement,
     debugMsg: HTMLDivElement,
-    tileUrl: string,
+    coords: Coords,
     data: PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta,
   ) {
-    this.fire("tilecachehit", {
-      tile: tile,
-      url: tileUrl,
+    const tileUrl = this._getTileUrl(coords);
+    const tileKeyId = this._getTileDBKey(coords);
+    this.fire('tilecachehit', {
+      tile,
+      coords,
+      tileKeyId,
     });
     if (this.pouchDBOptions.debug) {
-      debugMsg.innerHTML += ", _onCacheHit";
+      debugMsg.innerHTML += ', _onCacheHit';
     }
+    this.debug('_onCacheHit', coords);
+
     const t0 = performance.now();
 
     try {
@@ -247,49 +252,52 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       ) {
         // Tile is too old, try to refresh it
         if (this.pouchDBOptions.debug) {
-          console.debug(
-            `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`
+          this.debug(
+            `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`,
           );
-          debugMsg.style.color = "orange";
-          debugMsg.innerHTML += escapeHtml(`, too old(${new Date(data.timestamp)})`);
+          debugMsg.style.color = 'orange';
+          debugMsg.innerHTML += escapeHtml(
+            `, too old(${new Date(data.timestamp)})`,
+          );
         }
 
         if (this.pouchDBOptions.saveToCache) {
-          this.saveTile(
-            this.pouchDBOptions.cacheFormat,
-            true,
-            tileUrl,
-            data._revs_info[0].rev
-          );
+          this.saveTile(this.pouchDBOptions.cacheFormat, true, coords);
         }
         const t1 = performance.now();
         if (this.pouchDBOptions.debug) {
-          debugMsg.innerHTML +=
-            escapeHtml(`, ${tileUrl} took ${t1 - t0} milliseconds.`)
+          debugMsg.innerHTML += escapeHtml(
+            `, ${tileUrl} took ${t1 - t0} milliseconds.`,
+          );
         }
-        tile.crossOrigin = "Anonymous";
-        tile.src = tileUrl;
-        return tileUrl;
+        tile.crossOrigin = 'Anonymous';
+        if (tile.src !== tileUrl) {
+          tile.src = tileUrl;
+        }
       } else {
         if (this.pouchDBOptions.debug) {
-          debugMsg.style.color = "green";
-          debugMsg.innerHTML += ", loadFromCache";
+          debugMsg.style.color = 'green';
+          debugMsg.innerHTML += ', loadFromCache';
         }
-        const newSrc = await this._db.getAttachment(tileUrl, "tile").then((blob) => {
-          const url = URL.createObjectURL(blob as Blob);
-          tile.src = url;
+        if (this._db) {
+          const blob = await this._db.getAttachment(tileUrl, 'tile');
+          const newSrc = URL.createObjectURL(blob as Blob);
+          if (tile.src !== newSrc) {
+            tile.src = newSrc;
+          }
           const t1 = performance.now();
           if (this.pouchDBOptions.debug) {
-            debugMsg.innerHTML +=
-              escapeHtml(`,getAttachment ${tileUrl} took ${Math.ceil(t1 - t0)} milliseconds.`)
+            debugMsg.innerHTML += escapeHtml(
+              `,getAttachment ${tileUrl} took ${Math.ceil(
+                t1 - t0,
+              )} milliseconds.`,
+            );
           }
-          return url;
-        });
-        return newSrc;
+        }
       }
     } catch (reason) {
-      if (reason && reason.status === 404) {
-        return this._onCacheMiss(tile, debugMsg, tileUrl);
+      if (reason && (reason as any).status === 404) {
+        return this._onCacheMiss(tile, debugMsg, coords);
       } else {
         throw reason;
       }
@@ -299,36 +307,37 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   _onCacheMiss(
     tile: HTMLImageElement,
     debugMsg: HTMLDivElement,
-    tileUrl: string,
+    coords: Coords,
   ) {
-    this.fire("tilecachemiss", {
-      tile: tile,
-      url: tileUrl,
+    const tileUrl = this._getTileUrl(coords);
+    const tileKeyId = this._getTileDBKey(coords);
+    this.fire('tilecachemiss', {
+      tile,
+      coords,
+      tileKeyId,
     });
-
     if (this.pouchDBOptions.debug) {
-      debugMsg.style.color = "white";
-      debugMsg.innerHTML += ", _onCacheMiss";
+      debugMsg.style.color = 'white';
+      debugMsg.innerHTML += ', _onCacheMiss';
     }
-
-    let src = '';
+    this.debug('_onCacheMiss', coords, tile.src);
 
     if (this.pouchDBOptions.useOnlyCache) {
       // Offline, not cached
       // 	console.log('Tile not in cache', tileUrl);
       // tile.onload = Util.falseFn;
-      src = Util.emptyImageUrl;
+      tile.src = Util.emptyImageUrl;
     } else {
       // Online, not cached, request the tile normally
       // console.log('Requesting tile normally', tileUrl);
       if (this.pouchDBOptions.saveToCache) {
-        this.saveTile(this.pouchDBOptions.cacheFormat, true, tileUrl);
+        this.saveTile(this.pouchDBOptions.cacheFormat, true, coords);
       }
-      tile.crossOrigin = "Anonymous";
-      src = tileUrl;
+      tile.crossOrigin = 'Anonymous';
+      if (tile.src !== tileUrl && !tile.src.startsWith('blob:')) {
+        tile.src = tileUrl;
+      }
     }
-    // tile.src = src;
-    return src;
   }
 
   // Modified L.TileLayer.getTileUrl, this will use the zoom given by the parameter coords
@@ -336,80 +345,119 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   // https://github.com/Leaflet/Leaflet/blob/1d09819922f592cd0fcdf37eb1fc263544a8bab6/src/layer/tile/TileLayer.js#L169
   _getTileUrl(coords: Coords) {
     let zoom = coords.z;
-    if (this.options.zoomReverse) {
+    if (this.options.zoomReverse && this.options.maxZoom) {
       zoom = this.options.maxZoom - zoom;
     }
-    zoom += this.options.zoomOffset;
+    if (this.options.zoomOffset) {
+      zoom += this.options.zoomOffset;
+    }
     const data = {
-      r: Browser.retina ? "@2x" : "",
+      r: Browser.retina ? '@2x' : '',
       s: this._getSubdomain(coords),
       x: coords.x,
       y: coords.y,
       z: zoom,
+      '-y': 0,
     };
-    if (this._map && !this._map.options.crs.infinite) {
+    if (
+      this._map &&
+      !this._map.options.crs?.infinite &&
+      this._globalTileRange.max?.y
+    ) {
       const invertedY = this._globalTileRange.max.y - coords.y;
       if (this.options.tms) {
-        data["y"] = invertedY;
+        data['y'] = invertedY;
       }
-      data["-y"] = invertedY;
+      data['-y'] = invertedY;
     }
 
     return Util.template(this._url, Util.extend(data, this.options));
   }
 
-  saveTile(
-    format: string,
-    override: boolean,
-    tileUrl: string,
-    existingRevision?: string
-  ) {
-    if (this.workerRemote) {
-      this.workerRemote.saveTile(format, override, tileUrl, existingRevision);
-      return;
-    } else {
+  _getTileDBKey(coords: Coords) {
+    let zoom = coords.z;
+    if (this.options.zoomReverse && this.options.maxZoom) {
+      zoom = this.options.maxZoom - zoom;
+    }
+    if (this.options.zoomOffset) {
+      zoom += this.options.zoomOffset;
+    }
+    const data = {
+      r: Browser.retina ? '@2x' : '',
+      s: '***',
+      x: coords.x,
+      y: coords.y,
+      z: zoom,
+      '-y': 0,
+    };
+    if (
+      this._map &&
+      !this._map.options.crs?.infinite &&
+      this._globalTileRange.max?.y
+    ) {
+      const invertedY = this._globalTileRange.max.y - coords.y;
+      if (this.options.tms) {
+        data['y'] = invertedY;
+      }
+      data['-y'] = invertedY;
+    }
+
+    return Util.template(this._url, Util.extend(data, this.options));
+  }
+
+  saveTile(format: string, override: boolean, coords: Coords) {
+    requestAnimationFrame(() => {
       (async () => {
-        const t0 = performance.now();
-        try {
-          if (!override) {
+        const tileUrl = this._getTileUrl(coords);
+        const tileKeyId = this._getTileDBKey(coords);
+        this.debug(`saveTile coords`, coords);
+        if (this.workerRemote) {
+          this.workerRemote.saveTile(format, override, tileKeyId, tileUrl);
+          return;
+        } else {
+          if (this._db) {
+            let data:
+              | (PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta)
+              | null = null;
+            const t0 = performance.now();
             try {
-              const data = await this._db.get(tileUrl);
-              if (data) {
-                return;
+              try {
+                data = await this._db.get(tileKeyId, { revs_info: true });
+                if (!override && data) {
+                  return;
+                }
+              } catch {
+                //
               }
-            } catch {
-              //
+              this.debug(`No data for ${coords} in _seedOneTile`);
+              const response = await fetch(tileUrl);
+              const blob = await response.blob();
+              this.debug(`saveTileBlobThread: Saving ${tileUrl}`);
+
+              await retryUntilWritten(this._db, {
+                _id: tileUrl,
+                _rev: data?._rev,
+                timestamp: Date.now(),
+                _attachments: {
+                  tile: {
+                    content_type: format,
+                    data: blob,
+                  },
+                },
+              });
+              const t1 = performance.now();
+              this.debug(`${tileUrl}: Done`);
+              this.pouchDBOptions.profiling &&
+                console.log(
+                  `inline saveTile ${tileUrl} took ${t1 - t0} milliseconds.`,
+                );
+            } catch (err) {
+              console.error(err);
             }
           }
-          this.pouchDBOptions.debug &&
-            console.debug(`No data for ${tileUrl} in _seedOneTile`);
-          const response = await fetch(tileUrl);
-          const blob = await response.blob();
-          this.pouchDBOptions.debug &&
-            console.debug(`saveTileBlobThread: Saving ${tileUrl}`);
-
-          await retryUntilWritten(this._db, {
-            _id: tileUrl,
-            _rev: existingRevision,
-            timestamp: Date.now(),
-            _attachments: {
-              tile: {
-                content_type: format,
-                data: blob,
-              },
-            },
-          });
-          const t1 = performance.now();
-          this.pouchDBOptions.debug && console.debug(`${tileUrl}: Done`);
-          this.pouchDBOptions.profiling &&
-            console.log(
-              `inline saveTile ${tileUrl} took ${t1 - t0} milliseconds.`
-            );
-        } catch (err) {
-          console.error(err);
         }
       })();
-    }
+    });
   }
 
   // 🍂section PouchDB tile caching methods
@@ -433,93 +481,77 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       // const pixelBounds = this._getTiledPixelBounds(new Bounds([northEastPoint, southWestPoint])
       // );
       const tileRange = this._pxBoundsToTileRange(
-        new Bounds([northEastPoint, southWestPoint])
+        new Bounds([northEastPoint, southWestPoint]),
       );
 
-      for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
-        for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
-          const point = new Point(i, j) as Coords;
-          point.z = z;
-          const url = this._getTileUrl(point);
-          // queue.push(url);
-          this.saveTile(this.pouchDBOptions.cacheFormat, false, url);
-          count++;
+      if (tileRange.min && tileRange.max) {
+        for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
+          for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
+            const coords = new Point(i, j) as Coords;
+            coords.z = z;
+            this.saveTile(this.pouchDBOptions.cacheFormat, false, coords);
+            count++;
+          }
         }
       }
     }
-    this.pouchDBOptions.debug && console.debug(`seed loaded ${count}`);
-
-    // const seedData: SeedData = {
-    //   bbox: bbox,
-    //   minZoom: minZoom,
-    //   maxZoom: maxZoom,
-    //   queueLength: queue.length,
-    // };
-    // this.fire("seedstart", seedData);
-
-    // for (let i = 0; i < queue.length; i++) {
-    //   this.fire("seedprogress", {
-    //     bbox: seedData.bbox,
-    //     minZoom: seedData.minZoom,
-    //     maxZoom: seedData.maxZoom,
-    //     queueLength: seedData.queueLength,
-    //     remainingLength: queue.length - i,
-    //   });
-
-    //   this.worker.saveTile(this.options.cacheFormat, false, queue[i]);
-    // }
-    // this.fire("seedend", seedData);
+    this.debug(`seed loaded ${count}`);
   }
 
   seedBounds(tileRange: Bounds, z: number) {
     if (!this.pouchDBOptions.useCache) return;
     if (!this._map) return;
 
-    // const queue: string[] = [];
     let count = 0;
 
-    for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
-      for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
-        const point = new Point(i, j) as Coords;
-        point.z = z;
-        const url = this._getTileUrl(point);
-        // queue.push(url);
-        this.saveTile(this.pouchDBOptions.cacheFormat, false, url);
-        count++;
+    if (tileRange.min && tileRange.max) {
+      for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
+        for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
+          const coords = new Point(i, j) as Coords;
+          coords.z = z;
+          this.saveTile(this.pouchDBOptions.cacheFormat, false, coords);
+          count++;
+        }
       }
     }
 
-    this.pouchDBOptions.debug && console.debug(`seedBounds loaded ${count}`);
-
-    // for (let i = 0; i < queue.length; i++) {
-    //   this.worker.saveTile(this.pouchDBOptions.cacheFormat, false, queue[i]);
-    // }
+    this.debug(`seedBounds loaded ${count}`);
   }
 
   onTileUnload(e: TileEvent) {
-    let imgSrc = (e.tile as HTMLImageElement).src;
+    let imgSrc: string | undefined = (e.tile as HTMLImageElement).src;
     if (this.pouchDBOptions.debug) {
-      imgSrc = e.tile.querySelector("img").src;
+      imgSrc = e.tile.querySelector('img')?.src;
     }
-    if (imgSrc && imgSrc.startsWith("blob:")) {
+    if (imgSrc && imgSrc.startsWith('blob:')) {
       URL.revokeObjectURL(imgSrc);
     }
   }
 
   onAdd(map: Map): this {
     if (this.pouchDBOptions.useCache) {
-      this._db = new PouchDB("offline-tiles");
-      this._worker = workerSupport ? new Worker(workerBlobURI) : null;
-      this.workerRemote = this._worker && this.pouchDBOptions.useWorker && Comlink.wrap(this._worker);
+      this._db = new PouchDB('offline-tiles');
+      // this._worker = workerSupport ? new Worker(workerBlobURI) : undefined;
+      // const workerUrl = new URL('./worker/worker.ts', import.meta.url);
+      // this._worker = workerSupport
+      // ? new Worker(workerUrl, {
+      //     type: 'module',
+      //   })
+      // : undefined;
+      this._worker = workerSupport ? new Worker() : undefined;
+      this.workerRemote =
+        this._worker && this.pouchDBOptions.useWorker && this._worker
+          ? Comlink.wrap(this._worker)
+          : undefined;
       if (this.workerRemote) {
         this.workerRemote.setDebug(this.pouchDBOptions.debug);
         this.workerRemote.setProfiling(this.pouchDBOptions.profiling);
       }
       if (workerSupport && !this._worker && this.pouchDBOptions.useWorker) {
-        console.warn('something wrong that cannot create worker 😣')
+        console.warn('something wrong that cannot create worker 😣');
       }
     } else {
-      this._db = null;
+      this._db = undefined;
     }
     super.onAdd(map);
     return this;
@@ -528,10 +560,10 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
   onRemove(map: Map) {
     super.onRemove(map);
     this._worker?.terminate();
-    this._worker = null;
-    this.workerRemote = null;
-    this._db.close();
-    this._db = null;
+    this._worker = undefined;
+    this.workerRemote = undefined;
+    this._db?.close();
+    this._db = undefined;
     return this;
   }
 }
