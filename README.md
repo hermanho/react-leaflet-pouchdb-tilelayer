@@ -19,7 +19,7 @@ npm install react-leaflet-pouchdb-tilelayer --save
 
 ### Demo
 
-https://codesandbox.io/s/competent-glade-xpy0b
+https://codesandbox.io/p/sandbox/strange-field-t7l4ly
 
 ### Usage with React-Leaflet v2
 
