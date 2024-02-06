@@ -20,9 +20,10 @@ jobs:
       - id: check_package_version
         run: |
           PACKAGE_VERSION=$(cat package.json | jq -r '.version')
+          echo "packge_version $PACKAGE_VERSION"
           echo "packge_version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
       - run: |
-          echo "packge_version=$packge_version"
+          echo "packge_version=${{steps.check_package_version.outputs.packge_version}}"
           echo "prerelease=${{ contains(steps.check_package_version.outputs.packge_version, 'beta') }}"
       - uses: google-github-actions/release-please-action@v3
         id: release
