@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.1](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.0.0...v4.0.1) (2025-01-01)
+
+
+### Bug Fixes
+
+* fetch promise hash ([#43](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/43)) ([5caad5e](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/5caad5ea73ee2e0f8973d9625d0f5fc422c62cb6))
+
 ## [4.0.0](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v3.3.0...v4.0.0) (2025-01-01)
 
 
