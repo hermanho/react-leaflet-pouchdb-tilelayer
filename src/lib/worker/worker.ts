@@ -48,7 +48,10 @@ class Worker {
     }
     const t0 = performance.now();
     try {
-      this.debug(`[web worker] No data for ${tileUrl} in _seedOneTile`);
+      this.debug(`[web worker] No data found in _seedOneTile`, {
+        tileUrl,
+        tileDbKeyId,
+      });
       const response = await fetch(tileUrl, {
         headers: {
           Accept:
@@ -57,7 +60,10 @@ class Worker {
       });
       const blob = await response.blob();
       if (blob) {
-        this.debug(`[web worker] SaveTileBlobThread: Saving ${tileUrl}`);
+        this.debug(`[web worker] SaveTileBlobThread: Saving`, {
+          tileUrl,
+          tileDbKeyId,
+        });
         await retryUntilWritten(this.db, {
           _id: tileDbKeyId,
           _rev: data?._rev,
@@ -70,19 +76,24 @@ class Worker {
           },
         });
         const t1 = performance.now();
-        this.debug(`[web worker] ${tileUrl}: Done`);
-        this.profiling &&
+        this.debug(`[web worker] Done`, {
+          tileUrl,
+          tileDbKeyId,
+        });
+        if (this.profiling) {
           console.log(
             `[web worker] SaveTile ${tileUrl} took ${Math.ceil(
               t1 - t0,
             )} milliseconds.`,
           );
+        }
       } else {
         this.debug(`[web worker] ${tileUrl}: No data returned`);
       }
     } catch (err) {
       console.error(err);
     }
+    this.fetchPromiseHash.delete(tileDbKeyId);
   };
 
   async saveTile(
@@ -94,7 +105,7 @@ class Worker {
     try {
       const data = await this.db.get(tileDbKeyId);
       if (!override && data) {
-        this.debug('[web worker] No override for tileDbKeyId', tileDbKeyId);
+        this.debug('[web worker] No override for tileDbKeyId', { tileDbKeyId });
         return;
       }
     } catch {
