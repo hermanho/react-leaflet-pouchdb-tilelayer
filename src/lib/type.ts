@@ -10,6 +10,7 @@ export interface PouchDBTileLayerOptions extends TileLayerOptions {
   cacheEdgeTile?: number;
   useWorker?: boolean;
   debug?: boolean;
+  debugOnUI?: boolean;
   profiling?: boolean;
 }
 

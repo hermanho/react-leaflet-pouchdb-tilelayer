@@ -49,7 +49,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     this.on('tileunload', this.onTileUnload);
 
     this.debug = function () {};
-    if (this.pouchDBOptions.debug) {
+    if (this.pouchDBOptions.debugOnUI) {
       const debugStyleNode = document.createElement('style');
       debugStyleNode.innerHTML = `
       .debugContainerCSS {
@@ -79,7 +79,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     const debugMsg = document.createElement('div');
     const imgTile = document.createElement('img');
 
-    if (this.pouchDBOptions.debug) {
+    if (this.pouchDBOptions.debugOnUI) {
       debugMsgContainer.classList.add('debug');
       debugMsgContainer.classList.add('debugContainerCSS');
       debugMsg.classList.add('debug');
@@ -159,7 +159,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
                 zoom < this.options.minZoom)
             )
           ) {
-            if (this.pouchDBOptions.debug) {
+            if (this.pouchDBOptions.debugOnUI) {
               debugMsg.innerHTML += escapeHtml(
                 `, cacheNextZoomLevel (${zoom})`,
               );
@@ -202,7 +202,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     //     }
     //   }, 1000);
     // }
-    if (this.pouchDBOptions.debug) {
+    if (this.pouchDBOptions.debugOnUI) {
       return debugTile;
     } else {
       return imgTile;
@@ -216,8 +216,8 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     debugMsg: HTMLDivElement,
     coords: Coords,
   ) {
-    const tileKeyId = this._getTileDBKey(coords);
-    const data = await this._db?.get(tileKeyId);
+    const tileDbKeyId = this._getTileDBKey(coords);
+    const data = await this._db?.get(tileDbKeyId);
     if (data) {
       return this._onCacheHit(tile, debugMsg, coords, data);
     } else {
@@ -232,16 +232,20 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     data: PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta,
   ) {
     const tileUrl = this._getTileUrl(coords);
-    const tileKeyId = this._getTileDBKey(coords);
+    const tileDbKeyId = this._getTileDBKey(coords);
     this.fire('tilecachehit', {
       tile,
       coords,
-      tileKeyId,
+      tileDbKeyId,
     });
-    if (this.pouchDBOptions.debug) {
+    if (this.pouchDBOptions.debugOnUI) {
       debugMsg.innerHTML += ', _onCacheHit';
     }
-    this.debug('_onCacheHit', coords);
+    this.debug('_onCacheHit', {
+      tileUrl,
+      tileDbKeyId,
+      coords,
+    });
 
     const t0 = performance.now();
 
@@ -254,18 +258,25 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         if (this.pouchDBOptions.debug) {
           this.debug(
             `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`,
+            {
+              tileUrl,
+              tileDbKeyId,
+              coords,
+            },
           );
-          debugMsg.style.color = 'orange';
-          debugMsg.innerHTML += escapeHtml(
-            `, too old(${new Date(data.timestamp)})`,
-          );
+          if (this.pouchDBOptions.debugOnUI) {
+            debugMsg.style.color = 'orange';
+            debugMsg.innerHTML += escapeHtml(
+              `, too old(${new Date(data.timestamp)})`,
+            );
+          }
         }
 
         if (this.pouchDBOptions.saveToCache) {
           this.saveTile(this.pouchDBOptions.cacheFormat, true, coords);
         }
         const t1 = performance.now();
-        if (this.pouchDBOptions.debug) {
+        if (this.pouchDBOptions.debugOnUI) {
           debugMsg.innerHTML += escapeHtml(
             `, ${tileUrl} took ${t1 - t0} milliseconds.`,
           );
@@ -275,7 +286,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
           tile.src = tileUrl;
         }
       } else {
-        if (this.pouchDBOptions.debug) {
+        if (this.pouchDBOptions.debugOnUI) {
           debugMsg.style.color = 'green';
           debugMsg.innerHTML += ', loadFromCache';
         }
@@ -286,7 +297,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
             tile.src = newSrc;
           }
           const t1 = performance.now();
-          if (this.pouchDBOptions.debug) {
+          if (this.pouchDBOptions.debugOnUI) {
             debugMsg.innerHTML += escapeHtml(
               `,getAttachment ${tileUrl} took ${Math.ceil(
                 t1 - t0,
@@ -310,17 +321,22 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     coords: Coords,
   ) {
     const tileUrl = this._getTileUrl(coords);
-    const tileKeyId = this._getTileDBKey(coords);
+    const tileDbKeyId = this._getTileDBKey(coords);
     this.fire('tilecachemiss', {
       tile,
       coords,
-      tileKeyId,
+      tileDbKeyId,
     });
-    if (this.pouchDBOptions.debug) {
+    if (this.pouchDBOptions.debugOnUI) {
       debugMsg.style.color = 'white';
       debugMsg.innerHTML += ', _onCacheMiss';
     }
-    this.debug('_onCacheMiss', coords, tile.src);
+    this.debug('_onCacheMiss', {
+      tileUrl,
+      tileDbKeyId,
+      coords,
+      src: tile.src,
+    });
 
     if (this.pouchDBOptions.useOnlyCache) {
       // Offline, not cached
@@ -409,10 +425,10 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
     requestAnimationFrame(() => {
       (async () => {
         const tileUrl = this._getTileUrl(coords);
-        const tileKeyId = this._getTileDBKey(coords);
-        this.debug(`saveTile coords`, coords);
+        const tileDbKeyId = this._getTileDBKey(coords);
+        this.debug(`saveTile coords: `, { tileDbKeyId, coords });
         if (this.workerRemote) {
-          this.workerRemote.saveTile(format, override, tileKeyId, tileUrl);
+          this.workerRemote.saveTile(format, override, tileDbKeyId, tileUrl);
           return;
         } else {
           if (this._db) {
@@ -422,20 +438,27 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
             const t0 = performance.now();
             try {
               try {
-                data = await this._db.get(tileKeyId, { revs_info: true });
+                data = await this._db.get(tileDbKeyId, { revs_info: true });
                 if (!override && data) {
                   return;
                 }
               } catch {
                 //
               }
-              this.debug(`No data for ${coords} in _seedOneTile`);
+              this.debug(`No data found in _seedOneTile`, {
+                tileDbKeyId,
+                coords,
+              });
               const response = await fetch(tileUrl);
               const blob = await response.blob();
-              this.debug(`saveTileBlobThread: Saving ${tileUrl}`);
+              this.debug(`saveTileBlobThread: Saving`, {
+                tileUrl,
+                tileDbKeyId,
+                coords,
+              });
 
               await retryUntilWritten(this._db, {
-                _id: tileUrl,
+                _id: tileDbKeyId,
                 _rev: data?._rev,
                 timestamp: Date.now(),
                 _attachments: {
@@ -446,11 +469,16 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
                 },
               });
               const t1 = performance.now();
-              this.debug(`${tileUrl}: Done`);
-              this.pouchDBOptions.profiling &&
+              this.debug(`Done`, {
+                tileUrl,
+                tileDbKeyId,
+                coords,
+              });
+              if (this.pouchDBOptions.profiling) {
                 console.log(
                   `inline saveTile ${tileUrl} took ${t1 - t0} milliseconds.`,
                 );
+              }
             } catch (err) {
               console.error(err);
             }
@@ -520,7 +548,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
 
   onTileUnload(e: TileEvent) {
     let imgSrc: string | undefined = (e.tile as HTMLImageElement).src;
-    if (this.pouchDBOptions.debug) {
+    if (this.pouchDBOptions.debugOnUI) {
       imgSrc = e.tile.querySelector('img')?.src;
     }
     if (imgSrc && imgSrc.startsWith('blob:')) {
