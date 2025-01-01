@@ -14,7 +14,7 @@ export default [
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
   {
-    ignores: ['dist', '.eslintrc.cjs'],
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
     languageOptions: {
       globals: {
         ...globals.browser,
