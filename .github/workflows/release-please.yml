@@ -25,7 +25,7 @@ jobs:
       - run: |
           echo "packge_version=${{steps.check_package_version.outputs.packge_version}}"
           echo "prerelease=${{ contains(steps.check_package_version.outputs.packge_version, 'beta') }}"
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v4
         id: release
         with:
           release-type: node
