@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v3.3.0...v4.0.0) (2025-01-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* v4 ([#41](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/41)) ([1b845f8](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/1b845f8325aa072456d302efa840be07761994bb))
+
+### Bug Fixes
+
+* call getAttachment with wrong Id that caused not found in database and re-download the tile ([74e26a7](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/74e26a7ccb6f5f2cc8ec249ee9dd4e0fa55ab780))
+* fix logging ([9c52d42](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/9c52d424b488caef2ed8073f7d64338f1eec5c1b))
+* remove vite-plugin-node-polyfills ([42aea52](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/42aea523775e559304a20cb75c955873e4fa380e))
+* upgrade eslint to v9 ([a4b7fc1](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/a4b7fc1433b7509a94c86017623cd949faaaf41c))
+* upgrade to react v19, react-leaflet v5 ([02ce3e4](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/02ce3e408b6a1682cb1b244f5396642b1f1aeb94))
+
+### Features
+
+* add debugOnUI ([1633040](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/1633040a7134ba1e6b7c5608c70eeded5609f7ea))
+
 ## [3.3.0](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v3.2.2...v3.3.0) (2024-02-06)
 
 
