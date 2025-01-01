@@ -1,17 +1,13 @@
-import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
 import path from 'path';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import { externalizeDeps } from 'vite-plugin-externalize-deps';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    nodePolyfills({
-      globals: {
-        global: true,
-      },
-    }),
+    react(),
     dts({
       entryRoot: path.resolve(__dirname, 'src/lib'),
       insertTypesEntry: true,
