@@ -280,7 +280,7 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
           debugMsg.innerHTML += ', loadFromCache';
         }
         if (this._db) {
-          const blob = await this._db.getAttachment(tileUrl, 'tile');
+          const blob = await this._db.getAttachment(tileDbKeyId, 'tile');
           const newSrc = URL.createObjectURL(blob as Blob);
           if (tile.src !== newSrc) {
             tile.src = newSrc;
