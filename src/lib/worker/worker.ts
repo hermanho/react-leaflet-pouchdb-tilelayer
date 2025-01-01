@@ -93,7 +93,6 @@ class Worker {
     } catch (err) {
       console.error(err);
     }
-    this.fetchPromiseHash.delete(tileDbKeyId);
   };
 
   async saveTile(
