@@ -28,8 +28,6 @@ jobs:
         id: release
         with:
           release-type: node
-          package-name: react-leaflet-pouchdb-tilelayer
-          prerelease: ${{ contains(steps.check_package_version.outputs.packge_version, 'beta') }}
 
   deploy:
     runs-on: ubuntu-latest
