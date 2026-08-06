@@ -1,4 +1,4 @@
-import react from '@vitejs/plugin-react-swc';
+import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
@@ -9,14 +9,14 @@ export default defineConfig({
   plugins: [
     react(),
     dts({
-      entryRoot: path.resolve(__dirname, 'src/lib'),
+      entryRoot: path.resolve(import.meta.dirname, 'src/lib'),
       insertTypesEntry: true,
     }),
     externalizeDeps(),
   ],
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/lib/index.ts'),
+      entry: path.resolve(import.meta.dirname, 'src/lib/index.ts'),
       fileName: 'main',
       formats: ['es', 'cjs'],
     },

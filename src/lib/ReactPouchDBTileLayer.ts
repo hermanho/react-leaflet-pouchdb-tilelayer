@@ -8,8 +8,7 @@ import { LeafletPouchDBTileLayer } from './pouchdb-tilelayer';
 import { PouchDBTileLayerOptions } from './type';
 
 export interface PouchDBTileLayerProps
-  extends PouchDBTileLayerOptions,
-    TileLayerProps {}
+  extends PouchDBTileLayerOptions, TileLayerProps {}
 
 export const ReactPouchDBTileLayer = createTileLayerComponent<
   LeafletPouchDBTileLayer,

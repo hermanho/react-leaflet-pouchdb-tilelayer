@@ -6,28 +6,38 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "NODE_OPTIONS='--experimental-transform-types' eslint --flag unstable_native_nodejs_ts_config . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
-    "leaflet": "^1.9.4",
-    "pouchdb": "^9.0.0",
-    "pouchdb-browser": "^9.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-leaflet": "^5.0.0",
-    "react-leaflet-pouchdb-tilelayer": "^4.0.2"
+    "leaflet": "1.9.4",
+    "pouchdb": "9.0.0",
+    "pouchdb-browser": "9.0.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-leaflet": "5.0.0",
+    "react-leaflet-pouchdb-tilelayer": "file:./../"
   },
   "devDependencies": {
-    "@types/react": "^19.0.12",
-    "@types/react-dom": "^19.0.4",
-    "@typescript-eslint/eslint-plugin": "^8.29.0",
-    "@typescript-eslint/parser": "^8.29.0",
-    "@vitejs/plugin-react-swc": "^3.8.1",
-    "eslint": "^9.23.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "typescript": "^5.8.2",
-    "vite": "^6.2.4"
+    "@types/node": "24.1.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@typescript-eslint/eslint-plugin": "8.66.0",
+    "@typescript-eslint/parser": "8.66.0",
+    "@vitejs/plugin-react": "6.0.5",
+    "eslint": "10.8.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.3",
+    "typescript": "6.0.3",
+    "vite": "8.2.0"
+  },
+  "overrides": {
+    "leveldown": "6.1.1",
+    "uuid": "11.1.1"
+  },
+  "allowScripts": {
+    "@swc/core": true,
+    "fsevents": true,
+    "leveldown": true
   }
 }

@@ -3,4 +3,4 @@ export * from './ReactPouchDBTileLayer';
 import { ReactPouchDBTileLayer } from './ReactPouchDBTileLayer';
 export default ReactPouchDBTileLayer;
 
-window.global ||= window;
+(window as any).global ||= window;
