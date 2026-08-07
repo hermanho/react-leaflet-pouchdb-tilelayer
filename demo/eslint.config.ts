@@ -1,6 +1,5 @@
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
-import eslintConfigPrettier from 'eslint-config-prettier';
 import pluginJs from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
@@ -12,7 +11,6 @@ export default [
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat['jsx-runtime'],
   ...tseslint.configs.recommended,
-  eslintConfigPrettier,
   {
     files: ['src/**/*.ts', 'src/**/*.tsx'],
     languageOptions: {
@@ -21,6 +19,10 @@ export default [
       },
 
       parser: tseslint.parser,
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,
@@ -28,7 +30,6 @@ export default [
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      'prettier/prettier': 'error',
 
       'react-refresh/only-export-components': [
         'warn',
@@ -36,8 +37,6 @@ export default [
           allowConstantExport: true,
         },
       ],
-
-      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   eslintPluginPrettierRecommended,

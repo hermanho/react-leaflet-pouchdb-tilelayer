@@ -68,6 +68,8 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         padding: 5px;
       } `;
       document.getElementsByTagName('head')[0].appendChild(debugStyleNode);
+    }
+    if (this.pouchDBOptions.debug) {
       this.debug = console.debug.bind(window.console);
     }
   }
@@ -151,14 +153,11 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       setTimeout(() => {
         if (this._map) {
           const zoom = this._clampZoom(coords.z + 1);
-          if (
-            !(
-              (this.options.maxZoom !== undefined &&
-                zoom > this.options.maxZoom) ||
-              (this.options.minZoom !== undefined &&
-                zoom < this.options.minZoom)
-            )
-          ) {
+          if (!(
+            (this.options.maxZoom !== undefined &&
+              zoom > this.options.maxZoom) ||
+            (this.options.minZoom !== undefined && zoom < this.options.minZoom)
+          )) {
             if (this.pouchDBOptions.debugOnUI) {
               debugMsg.innerHTML += escapeHtml(
                 `, cacheNextZoomLevel (${zoom})`,
@@ -171,37 +170,6 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       }, randomSleep);
     }
 
-    // Cache edge tile
-    // if (this.options.cacheEdgeTile && this.options.cacheEdgeTile > 0) {
-    //   setTimeout(() => {
-    //     if (this._map) {
-    //       const tileRangeBounds = this._pxBoundsToTileRange(
-    //         this._map.getPixelBounds()
-    //       );
-    //       const edge = this.options.cacheEdgeTile;
-    //       const north = new Bounds(
-    //         new Point(tileRangeBounds.min.x, tileRangeBounds.min.y - edge),
-    //         new Point(tileRangeBounds.max.x, tileRangeBounds.min.y - 1)
-    //       );
-    //       const south = new Bounds(
-    //         new Point(tileRangeBounds.min.x, tileRangeBounds.max.y + 1),
-    //         new Point(tileRangeBounds.max.x, tileRangeBounds.max.y + edge)
-    //       );
-    //       const east = new Bounds(
-    //         new Point(tileRangeBounds.max.x + 1, tileRangeBounds.min.y),
-    //         new Point(tileRangeBounds.max.x + edge, tileRangeBounds.max.y)
-    //       );
-    //       const west = new Bounds(
-    //         new Point(tileRangeBounds.min.x - edge, tileRangeBounds.min.y),
-    //         new Point(tileRangeBounds.min.x - 1, tileRangeBounds.max.y)
-    //       );
-    //       this.seedBounds(north, this._map.getZoom());
-    //       this.seedBounds(south, this._map.getZoom());
-    //       this.seedBounds(east, this._map.getZoom());
-    //       this.seedBounds(west, this._map.getZoom());
-    //     }
-    //   }, 1000);
-    // }
     if (this.pouchDBOptions.debugOnUI) {
       return debugTile;
     } else {
@@ -255,21 +223,19 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
         !this.pouchDBOptions.useOnlyCache
       ) {
         // Tile is too old, try to refresh it
-        if (this.pouchDBOptions.debug) {
-          this.debug(
-            `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`,
-            {
-              tileUrl,
-              tileDbKeyId,
-              coords,
-            },
+        this.debug(
+          `Tile is too old: ${tileUrl}, ${Date.now()} > ${data.timestamp}`,
+          {
+            tileUrl,
+            tileDbKeyId,
+            coords,
+          },
+        );
+        if (this.pouchDBOptions.debugOnUI) {
+          debugMsg.style.color = 'orange';
+          debugMsg.innerHTML += escapeHtml(
+            `, too old(${new Date(data.timestamp)})`,
           );
-          if (this.pouchDBOptions.debugOnUI) {
-            debugMsg.style.color = 'orange';
-            debugMsg.innerHTML += escapeHtml(
-              `, too old(${new Date(data.timestamp)})`,
-            );
-          }
         }
 
         if (this.pouchDBOptions.saveToCache) {
@@ -524,26 +490,6 @@ export class LeafletPouchDBTileLayer extends LeafletTileLayer {
       }
     }
     this.debug(`seed loaded ${count}`);
-  }
-
-  seedBounds(tileRange: Bounds, z: number) {
-    if (!this.pouchDBOptions.useCache) return;
-    if (!this._map) return;
-
-    let count = 0;
-
-    if (tileRange.min && tileRange.max) {
-      for (let j = tileRange.min.y; j <= tileRange.max.y; j++) {
-        for (let i = tileRange.min.x; i <= tileRange.max.x; i++) {
-          const coords = new Point(i, j) as Coords;
-          coords.z = z;
-          this.saveTile(this.pouchDBOptions.cacheFormat, false, coords);
-          count++;
-        }
-      }
-    }
-
-    this.debug(`seedBounds loaded ${count}`);
   }
 
   onTileUnload(e: TileEvent) {

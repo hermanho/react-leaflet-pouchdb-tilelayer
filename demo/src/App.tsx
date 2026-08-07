@@ -1,14 +1,14 @@
-import { MapContainer, TileLayer, LayersControl } from "react-leaflet";
-import PouchDBTileLayer from "react-leaflet-pouchdb-tilelayer";
+import { MapContainer, TileLayer, LayersControl } from 'react-leaflet';
+import PouchDBTileLayer from 'react-leaflet-pouchdb-tilelayer';
 
-import "./App.css";
-import "leaflet/dist/leaflet.css";
+import './App.css';
+import 'leaflet/dist/leaflet.css';
 
 function App() {
   return (
     <MapContainer id="map" center={[22.287, 114.1694]} zoom={15}>
       <LayersControl position="topleft">
-        <LayersControl.BaseLayer  name="PouchDBTileLayer">
+        <LayersControl.BaseLayer checked name="PouchDBTileLayer">
           <PouchDBTileLayer
             profiling
             useCache
@@ -19,7 +19,7 @@ function App() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
         </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer checked name="TileLayer">
+        <LayersControl.BaseLayer name="TileLayer">
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -30,4 +30,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

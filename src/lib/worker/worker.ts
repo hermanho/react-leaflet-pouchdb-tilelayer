@@ -9,13 +9,15 @@ class Worker {
   isDebug: boolean;
   profiling: boolean;
   queue: PQueue;
+  pendingTileFetches: Map<string, Promise<void>>;
   debug: Console['debug'];
 
   constructor() {
     this.db = new PouchDB('offline-tiles');
     this.isDebug = false;
     // openstreetmap tile server have rate limit. It will return 418 when too many request
-    this.queue = new PQueue({ concurrency: 3, intervalCap: 2, interval: 500 });
+    this.queue = new PQueue({ concurrency: 3, intervalCap: 5, interval: 300 });
+    this.pendingTileFetches = new Map();
     this.profiling = false;
     console.debug(`[web worker] Worker created`);
     this.debug = function () {};
@@ -39,8 +41,7 @@ class Worker {
     tileUrl: string,
   ) => {
     let data:
-      | (PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta)
-      | null = null;
+      (PouchDB.Core.Document<OfflineTile> & PouchDB.Core.GetMeta) | null = null;
     try {
       data = await this.db.get(tileDbKeyId, { revs_info: true });
     } catch {
@@ -110,7 +111,25 @@ class Worker {
     } catch {
       //
     }
-    this.queue.add(() => this.fetchPromise(format, tileDbKeyId, tileUrl));
+    const pendingFetch = this.pendingTileFetches.get(tileDbKeyId);
+    if (pendingFetch) {
+      this.debug('[web worker] Tile fetch already queued/running', {
+        tileDbKeyId,
+      });
+      return pendingFetch;
+    }
+
+    const fetchTask = this.queue
+      .add(() => this.fetchPromise(format, tileDbKeyId, tileUrl), {
+        id: tileDbKeyId,
+      })
+      .finally(() => {
+        this.pendingTileFetches.delete(tileDbKeyId);
+      });
+
+    this.pendingTileFetches.set(tileDbKeyId, fetchTask);
+
+    return fetchTask;
   }
 }
 
