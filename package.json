@@ -108,5 +108,9 @@
   "allowScripts": {
     "fsevents": true,
     "leveldown": true
+  },
+  "packageManager": "npm@12.0.1",
+  "engines": {
+    "npm": ">=12.0.1"
   }
 }

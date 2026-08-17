@@ -10,6 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
+      - run: corepack enable npm
+      - run: npm --version
       - run: npm ci
       - run: npm run lint
       - run: npm test
