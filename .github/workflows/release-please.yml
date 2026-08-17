@@ -38,9 +38,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
-        with:
-          registry-url: "https://registry.npmjs.org"
-          package-manager-cache: false
+      - run: corepack enable npm
+      - run: npm --version
       - run: npm ci
       - run: npm run build
       - id: check_package_version
