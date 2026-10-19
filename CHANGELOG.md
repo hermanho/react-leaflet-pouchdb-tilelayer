@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.2.1](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.2.0...v4.2.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* use explicit release-please config and manifest files ([#70](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/70)) ([64d7869](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/64d78693515e3876b39453042bf59e3754e552db))
+
+
+### Build System
+
+* **deps:** bump source-map-js from 1.2.1 to 1.2.2 in /demo ([#68](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/68)) ([e80195c](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/e80195c3281053aa4547687e656672b8c6bd85d0))
+* **deps:** bump the npm_and_yarn group across 2 directories with 4 updates ([#69](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/69)) ([8dfc2f3](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/8dfc2f3f36ca02ed3ddd42120d09e5b8be761c07))
+
 ## [4.2.0](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.1.0...v4.2.0) (2026-08-17)
 
 
