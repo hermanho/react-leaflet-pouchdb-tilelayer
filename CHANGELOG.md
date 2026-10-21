@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.2.2](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.2.1...v4.2.2) (2026-10-21)
+
+
+### Build System
+
+* **deps-dev:** bump vite from 8.2.0 to 8.3.4 in the npm_and_yarn group across 1 directory ([#72](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/72)) ([38ced0d](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/38ced0d7b28a4bb47fb8f49b3dd0c5bc2702e39a))
+
 ## [4.2.1](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.2.0...v4.2.1) (2026-10-19)
 
 
