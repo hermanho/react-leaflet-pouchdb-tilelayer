@@ -53,37 +53,37 @@
     "comlink": "~4.4.2",
     "escape-html": "~1.0.3",
     "events": "~3.3.0",
-    "p-queue": "~9.3.3"
+    "p-queue": "~10.0.0"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "@react-leaflet/core": "3.0.0",
     "@types/escape-html": "1.0.4",
     "@types/leaflet": "1.9.22",
-    "@types/node": "24.1.0",
+    "@types/node": "24.19.2",
     "@types/pouchdb-browser": "6.1.5",
-    "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@types/workerpool": "9.0.0",
-    "@vitejs/plugin-react": "6.0.5",
+    "@vitejs/plugin-react": "6.3.0",
     "eslint": "9.39.5",
     "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-prettier": "5.5.6",
+    "eslint-plugin-prettier": "5.5.7",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
-    "eslint-plugin-react-refresh": "0.5.3",
-    "globals": "17.9.0",
+    "eslint-plugin-react-refresh": "0.5.8",
+    "globals": "17.14.0",
     "leaflet": "1.9.4",
     "pouchdb": "9.0.0",
     "pouchdb-browser": "9.0.0",
-    "prettier": "3.9.6",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "prettier": "3.10.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "react-leaflet": "5.0.0",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.65.0",
-    "vite": "8.3.4",
-    "vite-plugin-dts": "5.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vite-plugin-dts": "5.1.2",
     "vite-plugin-externalize-deps": "0.10.0"
   },
   "browserslist": {
@@ -109,8 +109,9 @@
     "fsevents": true,
     "leveldown": true
   },
-  "packageManager": "npm@12.0.1",
+  "packageManager": "npm@12.2.2",
   "engines": {
-    "npm": ">=12.0.1"
+    "npm": ">=12.0.1",
+    "node": ">=24.22.3 <25 || >=26.13.1"
   }
 }
