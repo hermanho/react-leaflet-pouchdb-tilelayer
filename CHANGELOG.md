@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.3.0](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.2.2...v4.3.0) (2026-11-21)
+
+
+### Features
+
+* dependency update ([#74](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/74)) ([ef26645](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/ef26645ae43a8313fcb520ebf1a3bc0fdf5af39c))
+
+
+### Build System
+
+* **deps-dev:** bump brace-expansion from 5.0.9 to 5.0.13 in the npm_and_yarn group across 1 directory ([#76](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/76)) ([f7865ff](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/f7865ffecc03e3ccf4fffb554fa4a264c313107f))
+* **deps-dev:** bump vite from 8.2.0 to 8.3.8 in /demo in the npm_and_yarn group across 1 directory ([#77](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/issues/77)) ([ae950b5](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/commit/ae950b54b4619c678a070891484fbab99742ae01))
+
 ## [4.2.2](https://github.com/hermanho/react-leaflet-pouchdb-tilelayer/compare/v4.2.1...v4.2.2) (2026-10-21)
 
 
